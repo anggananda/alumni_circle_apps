@@ -1,0 +1,97 @@
+import 'package:flutter/material.dart';
+// import 'package:my_app/components/asset_image_widget.dart';
+import 'package:my_app/utils/constants.dart';
+
+class SideBar extends StatelessWidget {
+  const SideBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: secondaryColor,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const UserAccountsDrawerHeader(
+            // accountName: Text(
+            //   "John Deo",
+            //   style: TextStyle(color: primaryFontColor),
+            // ),
+            // accountEmail: Text(
+            //   "kadejohndeo@gmail.com",
+            //   style: TextStyle(
+            //       color: primaryFontColor, fontWeight: FontWeight.bold),
+            // ),
+            // currentAccountPicture: CircleAvatar(
+            //   child: ClipOval(
+            //     child: AssetImageWidget(
+            //       imagePath: 'assets/images/angga.jpeg',
+            //       width: 300,
+            //       height: 300,
+            //       fit: BoxFit.cover,
+            //     ),
+            //   ),
+            // ),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(
+                    "assets/images/background.jpg"), // Ganti dengan path gambar dari asset Anda
+                fit: BoxFit.cover,
+              ),
+            ), accountName: null, accountEmail: null,
+          ),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text(
+              "About US",
+              style: TextStyle(
+                  color: primaryFontColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700),
+            ),
+            onTap: () => {Navigator.pushNamed(context, "/aboutus")},
+          ),
+          // Divider(),
+          ListTile(
+            leading: const Icon(Icons.help),
+            title: const Text(
+              "Help",
+              style: TextStyle(
+                  color: primaryFontColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700),
+            ),
+            onTap: () => {Navigator.pushNamed(context, "/help")},
+          ),
+          // Divider(),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text(
+              "Logout",
+              style: TextStyle(
+                  color: primaryFontColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700),
+            ),
+            onTap: () => {Navigator.pushNamed(context, "/Logout")},
+          ),
+          const Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.facebook),
+              ),
+              ListTile(
+                leading: const Icon(Icons.facebook),
+              ),
+              ListTile(
+                leading: const Icon(Icons.facebook),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
