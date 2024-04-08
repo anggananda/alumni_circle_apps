@@ -39,6 +39,24 @@ class DataService {
     }
   }
 
+  // Skema Update
+  static Future<void> updateNews(String id, String title, String body) async {
+    final response = await http.put(
+      Uri.parse('${Endpoints.news}/$id'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'title': title,
+        'body': body,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update news: ${response.statusCode}');
+    }
+  }
+
   // Skema Delete
   static Future<void> deleteNews(String id) async {
     final response = await http.delete(
