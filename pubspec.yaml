@@ -39,6 +39,8 @@ dependencies:
   flutter_screenutil: ^5.8.4
   intl: ^0.18.1
   url_launcher:
+  sqflite: ^2.3.2
+  path_provider: any
 
 dev_dependencies:
   flutter_test:

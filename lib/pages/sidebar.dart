@@ -45,14 +45,14 @@ class SideBar extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text(
-              "newpost",
+              "Postingan | Latihan SQLite",
               style: TextStyle(
                 color: primaryFontColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            onTap: () => Navigator.pushNamed(context, "/newpost"),
+            onTap: () => Navigator.pushNamed(context, "/postingan"),
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app),

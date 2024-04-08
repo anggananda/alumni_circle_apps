@@ -314,8 +314,8 @@ class _NewsScreenState extends State<NewsScreen> {
                                     post.body,
                                     textAlign: TextAlign.justify,
                                     style: TextStyle(
-                                        color: secondaryFontColor,
-                                        fontSize: 12),
+                                        color: primaryFontColor,
+                                        fontSize: 14),
                                   ),
                                   // trailing: TextButton(
                                   //   onPressed: () => _deleteNews(post.id),
