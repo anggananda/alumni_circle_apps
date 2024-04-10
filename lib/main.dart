@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:my_app/details/detail_event.dart';
 import 'package:my_app/details/detail_forum.dart';
@@ -19,7 +18,8 @@ import 'package:my_app/pages/list_event_page.dart';
 import 'package:my_app/pages/list_vacancy_page.dart';
 import 'package:my_app/pages/navigate.dart';
 import 'package:my_app/pages/news_screen.dart';
-import 'package:my_app/pages/postingan_crud_screen.dart';
+import 'package:my_app/pages/post_screen.dart';
+import 'package:my_app/pages/routes/BookScreen/book_screen.dart';
 import 'package:my_app/pages/semweb_category.dart';
 import 'package:my_app/pages/sport_category.dart';
 import 'package:my_app/utils/constants.dart';
@@ -66,7 +66,8 @@ class MyApp extends StatelessWidget {
             '/detailvacancy': (context) =>  const DetailVacancy(),
             '/newsscreen': (context) =>  const NewsScreen(),
             '/newpost': (context) =>  const NewsPostScreen(),
-            '/postingan': (context) =>  const PostinganPage(),
+            '/post': (context) =>  const PostPage(),
+            '/book': (context) =>  const BooksScreen(),
           },
         );
       },

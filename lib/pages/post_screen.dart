@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/helpers/dbhelper.dart';
-import 'package:my_app/models/postingan.dart';
+import 'package:my_app/models/posts.dart';
 import 'package:my_app/pages/inputpostingan.dart';
 import 'package:my_app/utils/constants.dart';
 
-class PostinganPage extends StatefulWidget {
-  const PostinganPage({Key? key}) : super(key: key);
+class PostPage extends StatefulWidget {
+  const PostPage({Key? key}) : super(key: key);
 
   @override
-  State<PostinganPage> createState() => _PostinganPageState();
+  State<PostPage> createState() => _PostinganPageState();
 }
 
-class _PostinganPageState extends State<PostinganPage> {
+class _PostinganPageState extends State<PostPage> {
   final dbHelper = DatabaseHelper();
+
+  @override
+  void dispose() {
+    dbHelper.close();
+    super.dispose();
+  }
 
   void _addPost(String title, String content) async {
     Post newPost = Post(
@@ -30,70 +36,69 @@ class _PostinganPageState extends State<PostinganPage> {
   }
 
   void _updatePost(Post post) {
-  TextEditingController _titleController = TextEditingController(text: post.title);
-  TextEditingController _contentController = TextEditingController(text: post.content);
+    TextEditingController _titleController = TextEditingController(text: post.title);
+    TextEditingController _contentController = TextEditingController(text: post.content);
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Edit Postingan'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _titleController,
-                onChanged: (value) {
-                  post.title = value;
-                },
-                decoration: InputDecoration(labelText: 'Title'),
-              ),
-              TextField(
-                controller: _contentController,
-                onChanged: (value) {
-                  post.content = value;
-                },
-                decoration: InputDecoration(labelText: 'Content'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Cancel', style: TextStyle(color: primaryFontColor),),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              // Panggil dbHelper untuk memperbarui postingan di database
-              await dbHelper.updatePost(post);
-              // Perbarui tampilan dengan setState agar perubahan terlihat
-              setState(() {});
-              Navigator.of(context).pop(); // Tutup dialog
-            },
-            child: Text('Update'),
-            style: ElevatedButton.styleFrom(
-              primary: primaryColor, // background color
-              onPrimary: primaryFontColor, // text color
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Postingan'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _titleController,
+                  onChanged: (value) {
+                    post.title = value;
+                  },
+                  decoration: InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: _contentController,
+                  onChanged: (value) {
+                    post.content = value;
+                  },
+                  decoration: InputDecoration(labelText: 'Content'),
+                ),
+              ],
             ),
           ),
-        ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 8.0,
-      );
-    },
-  );
-}
-
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel', style: TextStyle(color: primaryFontColor),),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Panggil dbHelper untuk memperbarui postingan di database
+                await dbHelper.updatePost(post);
+                // Perbarui tampilan dengan setState agar perubahan terlihat
+                setState(() {});
+                Navigator.of(context).pop(); // Tutup dialog
+              },
+              child: Text('Update'),
+              style: ElevatedButton.styleFrom(
+                primary: primaryColor, // background color
+                onPrimary: primaryFontColor, // text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 8.0,
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

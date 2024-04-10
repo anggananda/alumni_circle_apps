@@ -52,7 +52,31 @@ class SideBar extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            onTap: () => Navigator.pushNamed(context, "/postingan"),
+            onTap: () => Navigator.pushNamed(context, "/post"),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text(
+              "Books | Pak Teguh",
+              style: TextStyle(
+                color: primaryFontColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            onTap: () => Navigator.pushNamed(context, "/book"),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text(
+              "Test",
+              style: TextStyle(
+                color: primaryFontColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            onTap: () => Navigator.pushNamed(context, "/contoh"),
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app),

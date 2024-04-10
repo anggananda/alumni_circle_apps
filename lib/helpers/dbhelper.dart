@@ -1,4 +1,5 @@
-import 'package:my_app/models/postingan.dart';
+import 'package:flutter/material.dart';
+import 'package:my_app/models/posts.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -61,5 +62,17 @@ class DatabaseHelper {
   Future<int> deletePost(int id) async {
     var dbClient = await db;
     return await dbClient.delete('posts', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> close() async {
+    try {
+      // Access database client
+      var dbClient = await db;
+      _db = null;
+      await dbClient.close();
+    } catch (error) {
+      // Handle potential errors during closure
+      debugPrint('Error closing database: $error');
+    }
   }
 }
