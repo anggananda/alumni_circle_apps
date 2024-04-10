@@ -31,14 +31,15 @@ class _NavigatorBarPageState extends State<NavigatorBarPage> {
     return Scaffold(
       drawer: const SideBar(),
       appBar: AppBar(
-        title: const Text(
-          "Dashboard",
-          style: TextStyle(
+        title: _selectedIndex == 0 ? Text("Dashboard", style: TextStyle(
             fontWeight: FontWeight.bold,
             color: primaryFontColor,
             fontSize: 26,
-          ),
-        ),
+          ),) : Text("Profile", style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: primaryFontColor,
+            fontSize: 26,
+          ),),
         backgroundColor: primaryColor,
         centerTitle: true,
       ),

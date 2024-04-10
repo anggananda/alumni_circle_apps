@@ -11,6 +11,7 @@ import 'package:my_app/pages/educare_category.dart';
 import 'package:my_app/pages/education_category.dart';
 import 'package:my_app/pages/discussiion_page.dart';
 import 'package:my_app/pages/event_page.dart';
+import 'package:my_app/pages/help_screen.dart';
 import 'package:my_app/pages/job_vacancy_page.dart';
 import 'package:my_app/pages/landing_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
           title: "Alumni Circle App",
           home: const LandingPage(),
           theme: ThemeData(
-            scaffoldBackgroundColor: primaryColor,
+            scaffoldBackgroundColor: secondaryColor,
             visualDensity: VisualDensity.adaptivePlatformDensity,
             textTheme: GoogleFonts.soraTextTheme(),
           ),
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
             '/listevent': (context) =>  const ListEventPage(),
             '/listvacancy': (context) =>  const ListVacancyPage(),
             '/aboutus': (context) =>  const AboutUs(),
+            '/help': (context) =>  const HelpPage(),
             '/cateducation': (context) =>  const CategoryEducation(),
             '/catsport': (context) =>  const CategorySport(),
             '/semiwebi': (context) =>  const CategorySemiWebi(),

@@ -29,26 +29,28 @@ class _PostinganPageState extends State<PostinganPage> {
     setState(() {});
   }
 
-  void _updatePost(Post post) async {
-    // Tampilkan dialog atau widget lain untuk mengubah judul dan konten postingan
-    // Misalnya, Anda dapat menggunakan AlertDialog
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit Postingan'),
-          content: Column(
+  void _updatePost(Post post) {
+  TextEditingController _titleController = TextEditingController(text: post.title);
+  TextEditingController _contentController = TextEditingController(text: post.content);
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Edit Postingan'),
+        content: SingleChildScrollView(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: TextEditingController(text: post.title),
+                controller: _titleController,
                 onChanged: (value) {
                   post.title = value;
                 },
                 decoration: InputDecoration(labelText: 'Title'),
               ),
               TextField(
-                controller: TextEditingController(text: post.content),
+                controller: _contentController,
                 onChanged: (value) {
                   post.content = value;
                 },
@@ -56,28 +58,42 @@ class _PostinganPageState extends State<PostinganPage> {
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel', style: TextStyle(color: primaryFontColor),),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Panggil dbHelper untuk memperbarui postingan di database
+              await dbHelper.updatePost(post);
+              // Perbarui tampilan dengan setState agar perubahan terlihat
+              setState(() {});
+              Navigator.of(context).pop(); // Tutup dialog
+            },
+            child: Text('Update'),
+            style: ElevatedButton.styleFrom(
+              primary: primaryColor, // background color
+              onPrimary: primaryFontColor, // text color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
-            ElevatedButton(
-              onPressed: () async {
-                // Panggil dbHelper untuk memperbarui postingan di database
-                await dbHelper.updatePost(post);
-                // Perbarui tampilan dengan setState agar perubahan terlihat
-                setState(() {});
-                Navigator.of(context).pop(); // Tutup dialog
-              },
-              child: Text('Update'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 8.0,
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

@@ -108,143 +108,243 @@ class _NewsScreenState extends State<NewsScreen> {
 
 // Post News
   void _addNews() async {
-    TextEditingController titleController = TextEditingController();
-    TextEditingController bodyController = TextEditingController();
+  TextEditingController titleController = TextEditingController();
+  TextEditingController bodyController = TextEditingController();
 
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add News'),
-          content: Column(
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(
+          'Add News',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: primaryColor,
+          ),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0), // Atur padding horizontal dan vertikal
+        content: SingleChildScrollView(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              TextField(
+              TextFormField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
               ),
-              TextField(
+              SizedBox(height: 16),
+              TextFormField(
                 controller: bodyController,
-                decoration: const InputDecoration(labelText: 'Body'),
+                maxLines: 5,
+                decoration: InputDecoration(
+                  labelText: 'Body',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.red,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await DataService.createNews(
+                  titleController.text,
+                  bodyController.text,
+                );
                 Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  await DataService.createNews(
-                      titleController.text, bodyController.text);
-                  // ignore: use_build_context_synchronously
-                  Navigator.of(context).pop();
-                  _refreshNews(); // Refresh news list after adding
-                  // Show success message
-                  // ignore: use_build_context_synchronously
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Success'),
-                        content: const Text('News added successfully.'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('OK'),
+                _refreshNews(); // Refresh news list after adding
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text(
+                        'Success',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      content: Text(
+                        'News added successfully.',
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'OK',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.blue,
+                            ),
                           ),
-                        ],
-                      );
-                    },
-                  );
-                } catch (error) {
-                  print('Failed to create news: $error');
-                  // Handle error here
-                }
-              },
-              child: const Text('Add'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } catch (error) {
+                print('Failed to create news: $error');
+                // Handle error here
+              }
+            },
+            child: Text(
+              'Add',
+              style: TextStyle(
+                fontSize: 16,
+              ),
             ),
-          ],
-        );
-      },
-    );
-  }
+            style: ElevatedButton.styleFrom(
+              primary: primaryColor,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
 // Update News
   void _editNews(News news) async {
-    TextEditingController titleController =
-        TextEditingController(text: news.title);
-    TextEditingController bodyController =
-        TextEditingController(text: news.body);
+  TextEditingController titleController =
+      TextEditingController(text: news.title);
+  TextEditingController bodyController =
+      TextEditingController(text: news.body);
 
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Edit News'),
-          content: Column(
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(
+          'Edit News',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: primaryColor,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              TextField(
+              TextFormField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
               ),
-              TextField(
+              SizedBox(height: 16),
+              TextFormField(
                 controller: bodyController,
-                decoration: const InputDecoration(labelText: 'Body'),
+                maxLines: 5,
+                decoration: InputDecoration(
+                  labelText: 'Body',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.red,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await DataService.updateNews(
+                    news.id, titleController.text, bodyController.text);
                 Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  await DataService.updateNews(
-                      news.id, titleController.text, bodyController.text);
-                  Navigator.of(context).pop();
-                  _refreshNews(); // Refresh news list after editing
-                  // Show success message
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Success'),
-                        content: const Text('News updated successfully.'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('OK'),
+                _refreshNews(); // Refresh news list after editing
+                // Show success message
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text(
+                        'Success',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      content: Text(
+                        'News updated successfully.',
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'OK',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.blue,
+                            ),
                           ),
-                        ],
-                      );
-                    },
-                  );
-                } catch (error) {
-                  print('Failed to update news: $error');
-                  // Handle error here
-                }
-              },
-              child: const Text('Update'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } catch (error) {
+                print('Failed to update news: $error');
+                // Handle error here
+              }
+            },
+            child: Text(
+              'Update',
+              style: TextStyle(
+                fontSize: 16,
+              ),
             ),
-          ],
-        );
-      },
-    );
-  }
+            style: ElevatedButton.styleFrom(
+              primary: primaryColor,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
