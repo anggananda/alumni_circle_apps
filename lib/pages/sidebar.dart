@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 // import 'package:my_app/components/asset_image_widget.dart';
 import 'package:my_app/utils/constants.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
 
 class SideBar extends StatelessWidget {
   const SideBar({super.key});
 
-  Future<void> _launchURL(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
+  // Future<void> _launchURL(String url) async {
+  //   if (await canLaunchUrl(Uri.parse(url))) {
+  //     await launchUrl(Uri.parse(url));
+  //   } else {
+  //     throw 'Could not launch $url';
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class SideBar extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text(
-              "Dwi Angga - 4C - 2215091060",
+              "News | Latihan API",
               style: TextStyle(
                 color: primaryFontColor,
                 fontSize: 14,
@@ -53,30 +53,6 @@ class SideBar extends StatelessWidget {
               ),
             ),
             onTap: () => Navigator.pushNamed(context, "/post"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text(
-              "Books | Pak Teguh",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/book"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text(
-              "Test",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/contoh"),
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app),
