@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:my_app/models/postingan.dart';
-import 'package:my_app/helpers/dbhelper.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/helpers/dbhelper.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class AddPostForm extends StatefulWidget {
   const AddPostForm({Key? key, required this.onSubmit, required this.dbHelper}) : super(key: key);

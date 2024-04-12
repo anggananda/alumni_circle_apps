@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/services/data_service.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
 
 class NewsPostScreen extends StatefulWidget {
   const NewsPostScreen({Key? key}) : super(key: key);

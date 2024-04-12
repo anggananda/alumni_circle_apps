@@ -1,9 +1,9 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:my_app/pages/dashboard.dart';
-import 'package:my_app/pages/profile_page.dart';
-import 'package:my_app/pages/sidebar.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/pages/dashboard.dart';
+import 'package:alumni_circle_app/pages/profile_page.dart';
+import 'package:alumni_circle_app/pages/sidebar.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class NavigatorBarPage extends StatefulWidget {
   const NavigatorBarPage({super.key});

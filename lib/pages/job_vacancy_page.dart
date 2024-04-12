@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/pages/vacancy_slider.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/pages/vacancy_slider.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 
 class JobVacancyPage extends StatefulWidget {

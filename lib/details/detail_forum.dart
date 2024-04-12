@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class DetailForum extends StatefulWidget {
   const DetailForum({super.key});

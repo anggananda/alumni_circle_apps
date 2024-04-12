@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/components/asset_image_widget.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/components/asset_image_widget.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 import 'dart:async';
 
-import 'package:my_app/utils/menu_items.dart';
+import 'package:alumni_circle_app/utils/menu_items.dart';
 // import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DashboardPage extends StatelessWidget {

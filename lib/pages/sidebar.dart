@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 // import 'package:my_app/components/asset_image_widget.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
 class SideBar extends StatelessWidget {

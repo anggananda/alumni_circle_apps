@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/utils/constants.dart';
-import 'package:my_app/utils/event.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/event.dart';
 
 class ListEventPage extends StatelessWidget {
   const ListEventPage({Key? key}) : super(key: key);

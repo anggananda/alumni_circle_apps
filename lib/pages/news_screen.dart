@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/dto/news.dart';
-import 'package:my_app/services/data_service.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/dto/news.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({Key? key}) : super(key: key);

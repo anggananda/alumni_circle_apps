@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:my_app/dto/books.dart';
+import 'package:alumni_circle_app/dto/books.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io' as io;
 import 'package:path/path.dart';

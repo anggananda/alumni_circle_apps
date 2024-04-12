@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/helpers/dbhelper.dart';
-import 'package:my_app/models/posts.dart';
-import 'package:my_app/pages/inputpostingan.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/helpers/dbhelper.dart';
+import 'package:alumni_circle_app/models/posts.dart';
+import 'package:alumni_circle_app/pages/inputpostingan.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class PostPage extends StatefulWidget {
   const PostPage({Key? key}) : super(key: key);

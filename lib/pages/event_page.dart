@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/components/category_event_slider.dart';
-import 'package:my_app/components/event_slider.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/components/category_event_slider.dart';
+import 'package:alumni_circle_app/components/event_slider.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class EventPage extends StatefulWidget {
   const EventPage({super.key});

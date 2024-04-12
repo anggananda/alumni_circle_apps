@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart'; 
-import 'package:my_app/models/posts.dart';
+import 'package:alumni_circle_app/models/posts.dart';
 import 'package:sqflite/sqflite.dart'; 
 import 'package:path/path.dart'; 
 

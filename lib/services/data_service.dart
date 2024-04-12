@@ -1,8 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:my_app/dto/news.dart';
-import 'package:my_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/dto/news.dart';
+import 'package:alumni_circle_app/endpoints/endpoints.dart';
 
 class DataService {
   static Future<List<News>> fetchNews() async {

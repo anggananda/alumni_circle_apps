@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/dto/books.dart';
-import 'package:my_app/services/db_helper.dart';
+import 'package:alumni_circle_app/dto/books.dart';
+import 'package:alumni_circle_app/services/db_helper.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class BooksScreen extends StatefulWidget {

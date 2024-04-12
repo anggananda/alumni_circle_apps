@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
 
 class DiscussionPage extends StatefulWidget {
   const DiscussionPage({Key? key}) : super(key: key);

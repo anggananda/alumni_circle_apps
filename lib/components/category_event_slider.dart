@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/utils/category_event.dart';
-import 'package:my_app/utils/constants.dart'; // Mengimpor file yang berisi definisi kelas CategoryEvent dan fungsi getCategoryEvents
+import 'package:alumni_circle_app/utils/category_event.dart';
+import 'package:alumni_circle_app/utils/constants.dart'; // Mengimpor file yang berisi definisi kelas CategoryEvent dan fungsi getCategoryEvents
 
 class CategorySlider extends StatelessWidget {
   const CategorySlider({super.key});
