@@ -1,4 +1,12 @@
 import 'dart:io';
+import 'package:alumni_circle_app/pages/datas_screen.dart';
+import 'package:alumni_circle_app/pages/post_datas.dart';
+import 'package:alumni_circle_app/pages/register/login_page.dart';
+import 'package:alumni_circle_app/pages/register/signup_page.dart';
+import 'package:alumni_circle_app/pages/routes/customerService/customer_service_screen.dart';
+import 'package:alumni_circle_app/pages/routes/formDataCs/form_data_screen.dart';
+import 'package:alumni_circle_app/pages/updateform/update_data.dart';
+import 'package:alumni_circle_app/pages/vertical_pager.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/details/detail_event.dart';
 import 'package:alumni_circle_app/details/detail_forum.dart';
@@ -35,7 +43,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
+  return ScreenUtilInit(
       designSize: const Size(375, 812),
       builder: (BuildContext context, Widget? child) {
         return MaterialApp(
@@ -48,6 +56,8 @@ class MyApp extends StatelessWidget {
             textTheme: GoogleFonts.soraTextTheme(),
           ),
           routes: {
+            '/login': (context) =>  const LoginPage(),
+            '/signup': (context) =>  const SignUpPage(),
             '/navigate': (context) =>  const NavigatorBarPage(),
             '/discussion': (context) =>  const DiscussionPage(),
             '/event': (context) =>  const EventPage(),
@@ -68,6 +78,12 @@ class MyApp extends StatelessWidget {
             '/newpost': (context) =>  const NewsPostScreen(),
             '/post': (context) =>  const PostPage(),
             '/book': (context) =>  const BooksScreen(),
+            '/datas': (context) =>  const DatasScreen(),
+            '/postdatas': (context) =>  const FormScreen(),
+            '/verticalPage': (context) =>  const VerticalCardPagger(),
+            '/customerService': (context) =>  const CustomerServiceScreen(),
+            '/formData': (context) =>  const FormDataScreen(),
+            // '/updateDatas': (context) =>  const UpdateFormDatas(),
           },
         );
       },

@@ -108,7 +108,7 @@ class _NewsScreenState extends State<NewsScreen> {
 
 // Post News
   void _addNews() async {
-  TextEditingController titleController = TextEditingController();
+  TextEditingController titleController = TextEditingController(text: "haloooooo");
   TextEditingController bodyController = TextEditingController();
 
   await showDialog(

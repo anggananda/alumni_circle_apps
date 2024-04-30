@@ -9,7 +9,7 @@ class NewsPostScreen extends StatefulWidget {
 }
 
 class _NewsPostScreenState extends State<NewsPostScreen> {
-  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController(text: "hallooooo");
   final TextEditingController _bodyController = TextEditingController();
 
   void _submitNews() async {

@@ -54,7 +54,7 @@ class LandingPage extends StatelessWidget {
             width: 360,
             height: 62,
             child: ElevatedButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/navigate'),
+                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)

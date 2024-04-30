@@ -55,6 +55,42 @@ class SideBar extends StatelessWidget {
             onTap: () => Navigator.pushNamed(context, "/post"),
           ),
           ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text(
+              "Latihan Datas",
+              style: TextStyle(
+                color: primaryFontColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            onTap: () => Navigator.pushNamed(context, "/datas"),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text(
+              "Vertical",
+              style: TextStyle(
+                color: primaryFontColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            onTap: () => Navigator.pushNamed(context, "/verticalPage"),
+          ),
+          ListTile(
+            leading: const Icon(Icons.task_sharp),
+            title: const Text(
+              "Customer Service",
+              style: TextStyle(
+                color: primaryFontColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            onTap: () => Navigator.pushNamed(context, "/customerService"),
+          ),
+          ListTile(
             leading: const Icon(Icons.exit_to_app),
             title: const Text(
               "About US",
@@ -88,7 +124,7 @@ class SideBar extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            onTap: () => Navigator.pushNamed(context, "/Logout"),
+            onTap: () => Navigator.pushReplacementNamed(context, "/login"),
           ),
           const Divider(),
           SizedBox(

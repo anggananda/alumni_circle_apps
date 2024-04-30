@@ -18,6 +18,7 @@ class DashboardPage extends StatelessWidget {
         children: [
           const Positioned(
             right: 0.0,
+            left: 0.0,
             top: -10.0,
             child: Opacity(
               opacity: 0.2,
