@@ -37,7 +37,7 @@ dependencies:
   google_fonts: ^5.1.0
   curved_navigation_bar: ^1.0.3
   flutter_screenutil: ^5.8.4
-  intl: ^0.18.1
+  intl: ^0.19.0
   # url_launcher:
   sqflite: ^2.3.2
   path_provider: any
@@ -47,6 +47,10 @@ dependencies:
   image_picker: ^1.0.8
   vertical_card_pager: ^1.6.2
   flutter_rating_bar: ^4.0.1
+  flutter_bloc: ^8.1.5
+  meta: ^1.10.0
+  flutter_secure_storage: ^9.2.2
+
 
 dev_dependencies:
   flutter_test:

@@ -1,30 +1,61 @@
+import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
+import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
+import 'package:alumni_circle_app/dto/event.dart';
+import 'package:alumni_circle_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/pages/update_event_page.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DetailEvent extends StatefulWidget {
-  const DetailEvent({super.key});
+  final Events event;
+  final VoidCallback? onDataSubmitted;
+  final int? page;
+  const DetailEvent({Key? key, required this.event, this.onDataSubmitted, this.page})
+      : super(key: key);
 
   @override
   State<DetailEvent> createState() => _DetailEventState();
 }
 
 class _DetailEventState extends State<DetailEvent> {
-  final String description =
-      "Acara ini bertujuan untuk merayakan hari jadi prodi, menjalin silaturahmi antara alumni dan mahasiswa, serta memperkenalkan prodi kepada masyarakat luas. Terdapat beberapa rangkaian acara yaitu pembukaan, pembacaan doa, laporan ketua panitia, pemotongan tumpeng, sambutan coordinator program studi, pertunjukan seni, penutup. Alumni dapat mendaftarkan diri melalui website atau media sosial program studi. Biaya pendaftaran sebesar Rp50.000,-. Peserta yang telah mendaftar akan mendapatkan e-ticket sebagai bukti pendaftaran. E-ticket dapat ditukarkan dengan konsumsi di lokasi acara. Acara ini merupakan wujud rasa syukur program studi atas dukungan dan kerja keras semua pihak selama 1 tahun. Acara ini juga bertujuan untuk mempererat tali silaturahmi antara alumni dan program studi. Kami tunggu kehadiran Anda!";
 
-  bool _add = false;
-  bool _favorite = false;
+  void _sendListEvent() async {
+    final cubit = context.read<ProfileCubit>();
+    final currentState = cubit.state;
 
-  void _addEvent() {
-    setState(() {
-      _add = !_add;
-    });
+    final idAlumni = currentState.idAlumni;
+    final idEvent = widget.event.idEvent;
+
+    debugPrint('$idAlumni, $idEvent');
+
+    final response = await DataService.sendListEvent(idAlumni, idEvent);
+    if (response.statusCode == 201) {
+      debugPrint('Success');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Success to add Event to List Event')),
+      );
+    } else {
+      debugPrint('Failed: ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The event has been added to the event list')),
+      );
+    }
   }
 
-  void _favoriteEvent() {
-    setState(() {
-      _favorite = !_favorite;
-    });
+  void _deleteEvent(idEvent) async {
+
+    final deleteCubit = context.read<EventCubit>();
+    deleteCubit.deleteEvent(idEvent, widget.page!);
+    if(deleteCubit.state.errorMessage == ''){
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Successfully Delete Discussion')));
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to Delete Discussion')));
+    }
+    Navigator.pop(context);
   }
 
   @override
@@ -39,14 +70,13 @@ class _DetailEventState extends State<DetailEvent> {
                 height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: primaryColor,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(10),
                     bottomRight: Radius.circular(10),
                   ),
                   image: DecorationImage(
-                    image: const NetworkImage(
-                        "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"),
+                    image: NetworkImage(
+                        '${Endpoints.urlUas}/static/storages/${widget.event.gambar}'),
                     fit: BoxFit.cover,
                     colorFilter: ColorFilter.mode(
                       Colors.black.withOpacity(0.5),
@@ -96,40 +126,37 @@ class _DetailEventState extends State<DetailEvent> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          "🌟 Reuni Prodi SI",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: primaryFontColor),
-                        ),
-                        SizedBox(
-                          width: 10.0,
-                        ),
-                        Text(
-                          "Details",
-                          style: TextStyle(color: primaryFontColor),
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              "🌟 ${widget.event.namaEvent}",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: primaryFontColor),
+                              overflow: TextOverflow
+                                  .ellipsis, // Potong teks jika terlalu panjang
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10.0,
+                          ),
+                          Text(
+                            "Details",
+                            style: TextStyle(color: primaryFontColor),
+                          ),
+                        ],
+                      ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                            onPressed: _addEvent,
-                            icon: Icon(
-                              Icons.bookmark_add,
-                              color: _add == true ? primaryColor : Colors.grey,
-                            )),
-                        IconButton(
-                            onPressed: _favoriteEvent,
-                            icon: Icon(
-                              Icons.favorite,
-                              color:
-                                  _favorite == true ? Colors.red : Colors.grey,
-                            )),
-                      ],
+                    IconButton(
+                      onPressed: () {
+                        _sendListEvent();
+                      },
+                      icon: Icon(
+                        Icons.bookmark_add,
+                      ),
                     ),
                   ],
                 ),
@@ -143,16 +170,16 @@ class _DetailEventState extends State<DetailEvent> {
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     width: 370,
                     child: RichText(
-                      text: const TextSpan(
+                      text: TextSpan(
                         style: TextStyle(
                           color: primaryFontColor,
                         ),
                         children: <TextSpan>[
                           TextSpan(
-                              text: 'Date :',
+                              text: 'Date : ',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
-                              text: ' 01-01-2025',
+                              text: formatDateString(widget.event.tanggalEvent),
                               style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   color: Colors.grey)),
@@ -164,16 +191,16 @@ class _DetailEventState extends State<DetailEvent> {
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     width: 370,
                     child: RichText(
-                      text: const TextSpan(
+                      text: TextSpan(
                         style: TextStyle(
                           color: primaryFontColor,
                         ),
                         children: <TextSpan>[
                           TextSpan(
-                              text: 'Location :',
+                              text: 'Location : ',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
-                              text: ' Lap. FTK Kampus Tengah Undiksha',
+                              text: widget.event.lokasi,
                               style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   color: Colors.grey)),
@@ -189,7 +216,7 @@ class _DetailEventState extends State<DetailEvent> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  description,
+                  widget.event.deskripsi,
                   textAlign: TextAlign.justify,
                   style: TextStyle(color: primaryFontColor),
                 ),
@@ -220,6 +247,100 @@ class _DetailEventState extends State<DetailEvent> {
               const SizedBox(
                 height: 15.0,
               ),
+              BlocBuilder<ProfileCubit, ProfileState>(
+                  builder: (context, state) {
+                if (state.roles == 'admin') {
+                  return 
+                  Row(children: [
+                    Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Center(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.delete, color: Colors.white),
+                            label: const Text(
+                              "Delete",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 14, horizontal: 20),
+                              primary: Colors.red,
+                              onPrimary: Colors.redAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 5,
+                              shadowColor: Colors.redAccent,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    title: const Text(
+                                      "Confirm Delete",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    content: const Text(
+                                      "Are you sure you want to delete this event?",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text(
+                                          "Cancel",
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        child: const Text(
+                                          "Delete",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          primary: Colors.red,
+                                          onPrimary: Colors.redAccent,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          _deleteEvent(widget.event.idEvent);
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                  ],);
+                } else {
+                  return Container();
+                }
+              }),
             ],
           ),
         ),

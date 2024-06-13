@@ -50,21 +50,31 @@ class LandingPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            width: 360,
-            height: 62,
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: 28
+            ),
             child: ElevatedButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)
-                  )
+            onPressed: () {
+              // Navigator.pushNamed(context, '/navigate');
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(10), // Atur radius sudut menjadi 10
                 ),
-                child: const Text(
-                  "get started",
-                  style: TextStyle(fontSize: 16, color: primaryFontColor, ),
-                )),
-          )
+                minimumSize: Size(double.infinity, 48),),
+            child: Text(
+              'get started',
+              style: TextStyle(
+                    fontSize: 16,
+                    color: primaryFontColor,
+                    fontWeight: FontWeight.bold
+                  ),
+            ),
+          ),
+          ),
         ],
       ),
     );

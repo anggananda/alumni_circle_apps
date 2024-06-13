@@ -26,6 +26,10 @@ class _NavigatorBarPageState extends State<NavigatorBarPage> {
     });
   }
 
+  void initialState(){
+    
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

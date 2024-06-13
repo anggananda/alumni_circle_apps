@@ -1,7 +1,15 @@
+import 'package:alumni_circle_app/components/custom_search_box.dart';
+import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
+import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
+import 'package:alumni_circle_app/details/detail_vacancy.dart';
+import 'package:alumni_circle_app/dto/vacancy.dart';
+import 'package:alumni_circle_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/pages/update_vacancy_page.dart';
+import 'package:alumni_circle_app/pages/vacancy_form_page.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:flutter/material.dart';
-import 'package:alumni_circle_app/pages/vacancy_slider.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class JobVacancyPage extends StatefulWidget {
   const JobVacancyPage({super.key});
@@ -11,21 +19,79 @@ class JobVacancyPage extends StatefulWidget {
 }
 
 class _JobVacancyPageState extends State<JobVacancyPage> {
+  Future<List<Vacancies>>? _vacancy;
+  List<Vacancies> _filteredVacancy = [];
+  late TextEditingController _searchController = TextEditingController();
+  int _currentPage = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _fetchData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _fetchData() {
+    BlocProvider.of<VacancyCubit>(context)
+        .fetchVacancy(_currentPage, _searchController.text);
+  }
+
+  void _navigateToDetail(Vacancies vacancy) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailVacancy(
+          vacancy: vacancy,
+          page: _currentPage,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToForm() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VacancyFormPage(
+          page: _currentPage,
+        ),
+      ),
+    );
+  }
+
+  void _updateVacancy(Vacancies vacancy) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UpdateVacancyPage(vacancy: vacancy, page: _currentPage),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Job Vacancy', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+        title: const Text(
+          'Job Vacancy',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        ),
         backgroundColor: primaryColor,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Container(
-        color: secondaryColor,
-        child: Column(
-          children: [
-            Container(
-                height: 140,
+          color: secondaryColor,
+          child: Column(
+            children: [
+              Container(
+                height: 120,
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(30.0),
@@ -35,21 +101,77 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                 ),
                 padding: const EdgeInsets.symmetric(
                     horizontal: 20.0, vertical: 30.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search Vacancy...',
-                    filled: true,
-                    fillColor: secondaryColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide.none,
-                    ),
-                    hintStyle: const TextStyle(color: primaryFontColor),
-                    prefixIcon: const Icon(Icons.search),
-                  ),
+                child: CustomSearchBox(
+                  controller: _searchController,
+                  onChanged: (value) => _fetchData(),
+                  onClear: () => _fetchData(),
+                  hintText: 'Search Vacancy...',
                 ),
               ),
-              SizedBox(height: 20,),
+              BlocBuilder<ProfileCubit, ProfileState>(
+                builder: (context, state) {
+                  if (state.roles == 'admin') {
+                    return Column(
+                      children: [
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 15,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                _navigateToForm();
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 20),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(6),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: Offset(
+                                          0, 3), // changes position of shadow
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      'Add Vacancy',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    );
+                  } else {
+                    return Container(); // Return an empty container if the user is not an admin
+                  }
+                },
+              ),
+              SizedBox(
+                height: 10,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -58,20 +180,254 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                     child: Text(
                       "See All the Vacancies",
                       style: TextStyle(
-                        color: primaryFontColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0
-                      ),
+                          color: primaryFontColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 10,),
-              VacancySlider()
-          ],
+              SizedBox(
+                height: 10,
+              ),
+              BlocBuilder<VacancyCubit, VacancyState>(
+                builder: (context, state) {
+                  if (state.isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (state.errorMessage.isNotEmpty) {
+                    return Center(child: Text(state.errorMessage));
+                  } else if (state.vacancyList.isEmpty) {
+                    return Center(child: Text('No discussion data available'));
+                  } else {
+                    return Column(
+                      children: [
+                        Container(
+                            height: 410,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                              itemCount: state.vacancyList.length,
+                              separatorBuilder:
+                                  (BuildContext context, int index) {
+                                // Tambahkan jarak vertikal antara setiap item
+                                return SizedBox(height: 10);
+                              },
+                              itemBuilder: (context, index) {
+                                final vacancy = state.vacancyList[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    _navigateToDetail(vacancy);
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5.0),
+                                    child: Container(
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        color: thirdColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            spreadRadius: 2,
+                                            blurRadius: 5,
+                                            offset: Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsets.all(10),
+                                            child: Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(
+                                                      '${Endpoints.urlUas}/static/storages/${vacancy.gambar}'),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: EdgeInsets.all(10),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    vacancy.namaVacancy,
+                                                    style: TextStyle(
+                                                        fontSize: 16.0,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
+                                                  SizedBox(height: 5),
+                                                  Flexible(
+                                                    child: Text(
+                                                      vacancy.deskripsi,
+                                                      overflow:
+                                                          TextOverflow.fade,
+                                                      style: TextStyle(
+                                                          fontSize: 10),
+                                                      textAlign:
+                                                          TextAlign.justify,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          BlocBuilder<ProfileCubit,
+                                              ProfileState>(
+                                            builder: (context, state) {
+                                              if (state.roles == 'admin') {
+                                                return Container(
+                                                  padding: EdgeInsets.only(
+                                                      right: 10),
+                                                  child: ElevatedButton.icon(
+                                                    icon: const Icon(Icons.edit, size: 20, color: Colors.black,),
+                                                    label: const Text(
+                                                      "Edit",
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 12,
+                                                          horizontal: 16),
+                                                      primary: Colors.green,
+                                                      onPrimary:
+                                                          Colors.greenAccent,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                      elevation: 5,
+                                                      shadowColor:
+                                                          Colors.redAccent,
+                                                    ),
+                                                    onPressed: () {
+                                                      _updateVacancy(vacancy);
+                                                    },
+                                                  ),
+                                                );
+                                              } else {
+                                                return Container(); // Tombol Edit tidak ditampilkan
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )),
+                        SizedBox(height: 15), // Tambahkan jarak setelah daftar
+                      ],
+                    );
+                  }
+                },
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Material(
+                      color: _currentPage > 1 ? Colors.blue : Colors.grey,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: _currentPage > 1
+                            ? () {
+                                setState(() {
+                                  if (_currentPage > 1) {
+                                    _currentPage--;
+                                    _fetchData();
+                                  }
+                                });
+                              }
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.arrow_back, color: Colors.white),
+                              SizedBox(width: 5),
+                              Text(
+                                'Previous',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    Text(
+                      'Page $_currentPage',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(width: 20),
+                    BlocBuilder<VacancyCubit, VacancyState>(builder: (context, state) {
+                      return Material(
+                      color: state.vacancyList.isEmpty ? Colors.grey: Colors.blue,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          setState(() {
+                            state.vacancyList.isEmpty ? _currentPage: _currentPage++;
+                            _fetchData();
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Next',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              SizedBox(width: 5),
+                              Icon(Icons.arrow_forward, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                    },)
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
-      ) 
     );
   }
 }

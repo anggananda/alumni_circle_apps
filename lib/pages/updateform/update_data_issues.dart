@@ -318,13 +318,6 @@ class _UpdateFormIssuesState extends State<UpdateFormIssues> {
                                           ? Container(
                                               padding: EdgeInsets.all(5),
                                               child: Center(
-                                                  // child: Text('Pick your Image here',
-                                                  //     style: GoogleFonts.poppins(
-                                                  //       fontSize: 14,
-                                                  //       color: const Color.fromARGB(
-                                                  //           255, 124, 122, 122),
-                                                  //       fontWeight: FontWeight.w500,
-                                                  //     )))
                                                   child: Image.network(
                                                       '${Endpoints.urlDatas}/public/${_preview!}')),
                                             )

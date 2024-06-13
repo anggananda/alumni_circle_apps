@@ -1,0 +1,705 @@
+import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
+import 'package:alumni_circle_app/details/detail_forum.dart';
+import 'package:alumni_circle_app/dto/total.dart';
+import 'package:alumni_circle_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/pages/discussion_form_page.dart';
+import 'package:alumni_circle_app/pages/update_discussion_page.dart';
+import 'package:flutter/material.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
+import 'package:alumni_circle_app/dto/diskusi.dart';
+import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class DiscussionPage extends StatefulWidget {
+  const DiscussionPage({Key? key}) : super(key: key);
+
+  @override
+  _DiscussionPageState createState() => _DiscussionPageState();
+}
+
+class _DiscussionPageState extends State<DiscussionPage> {
+  Future<List<Diskusi>>? _diskusi;
+  Future<List<Total>>? _totalReply;
+  List<Diskusi> _filteredDiskusi = [];
+  final TextEditingController _searchController = TextEditingController();
+  int _currentPage = 1;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _fetchData() {
+    _diskusi = DataService.fetchDiskusi(_currentPage, _searchQuery);
+    _diskusi?.then((diskusiList) {
+      setState(() {
+        _filteredDiskusi = diskusiList;
+      });
+    });
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchController.text;
+      _currentPage = 1; // Reset to first page on new search
+      _fetchData();
+    });
+  }
+
+  void _totalReplies(int idDiskusi) {
+    setState(() {
+      _totalReply = DataService.fetchTotalReply(idDiskusi);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _navigateToDetail(Diskusi diskusi) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailForum(diskusi: diskusi),
+      ),
+    );
+  }
+
+  void _refreshData() {
+    setState(() {
+      _fetchData();
+    });
+  }
+
+  void _navigateToForm() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DiscussionFormPage(
+          onDataSubmitted: _refreshData, // Teruskan callback ini saat navigasi
+        ),
+      ),
+    );
+  }
+
+  void _updateDiscussion(Diskusi diskusi) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UpdateDiscussionPage(
+          diskusi: diskusi,
+          onDataSubmitted: _refreshData, // Teruskan callback ini saat navigasi
+        ),
+      ),
+    );
+  }
+
+  void _deleteDiscuss(int idDiskusi) async {
+    final response = await DataService.deleteDiskusi(idDiskusi);
+    if (response.statusCode == 200) {
+      debugPrint('Delete success');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Delete success')));
+      _refreshData();
+    } else {
+      debugPrint('Failed ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: ${response.statusCode}')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Discussion',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        ),
+        backgroundColor: primaryColor,
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Container(
+          color: secondaryColor,
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search Forum...',
+                    filled: true,
+                    fillColor: thirdColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintStyle: const TextStyle(color: primaryFontColor),
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              Column(
+                children: [
+                  SizedBox(height: 30),
+                  Row(
+                    children: [
+                      SizedBox(width: 15),
+                      GestureDetector(
+                        onTap: _navigateToForm,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset:
+                                    Offset(0, 3), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, color: Colors.white),
+                              SizedBox(width: 5),
+                              Text(
+                                'Add Discussion',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+              const SizedBox(height: 20),
+              FutureBuilder<List<Diskusi>>(
+                future: _diskusi,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                        child: Text('No discussion data available'));
+                  } else {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: _filteredDiskusi.length,
+                      itemBuilder: (context, index) {
+                        final diskusi = _filteredDiskusi[index];
+                        return GestureDetector(
+                          onTap: () => _navigateToDetail(diskusi),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 5, horizontal: 10),
+                                  decoration: BoxDecoration(
+                                    color: thirdColor,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        height: 60,
+                                        width: 60,
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromARGB(
+                                              255, 52, 42, 42),
+                                          borderRadius:
+                                              BorderRadius.circular(50),
+                                          image: DecorationImage(
+                                            image: NetworkImage(
+                                                '${Endpoints.urlUas}/static/storages/${diskusi.fotoProfile}'),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    diskusi.subjekDiskusi,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: primaryFontColor,
+                                                        fontSize: 16),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Text(
+                                              diskusi.email,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: secondaryFontColor,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                // FutureBuilder<List<Total>>(
+                                                //   future: _totalReply,
+                                                //   builder: (context, snapshot) {
+                                                //     if (snapshot.hasData) {
+                                                //       final data =
+                                                //           snapshot.data!;
+                                                //       return ListView.builder(
+                                                //         itemCount: data.length,
+                                                //         itemBuilder:
+                                                //             (context, index) {
+                                                //           final post =
+                                                //               data[index];
+                                                //           return Text(
+                                                //             '${post.total}',
+                                                //             style:
+                                                //                 const TextStyle(
+                                                //               fontSize: 12,
+                                                //               fontWeight:
+                                                //                   FontWeight
+                                                //                       .bold,
+                                                //               color:
+                                                //                   primaryFontColor,
+                                                //             ),
+                                                //           );
+                                                //         },
+                                                //       );
+                                                //     } else if (snapshot
+                                                //         .hasError) {
+                                                //       return Text(
+                                                //           '${snapshot.error}');
+                                                //     }
+                                                //     // Show a loading indicator while waiting for data
+                                                //     return const CircularProgressIndicator();
+                                                //   },
+                                                // ),
+                                                Text(
+                                                  formatDateString(
+                                                      diskusi.tanggal),
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: secondaryFontColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                BlocBuilder<ProfileCubit,
+                                                    ProfileState>(
+                                                  builder: (context, state) {
+                                                    if (state.roles ==
+                                                            'admin' ||
+                                                        diskusi.idAlumni ==
+                                                            state.idAlumni) {
+                                                      return Row(
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              Row(
+                                                                children: [
+                                                                  GestureDetector(
+                                                                    onTap: () {
+                                                                      _updateDiscussion(
+                                                                          diskusi);
+                                                                    },
+                                                                    child:
+                                                                        Container(
+                                                                      padding: EdgeInsets.symmetric(
+                                                                          vertical:
+                                                                              6,
+                                                                          horizontal:
+                                                                              12),
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: Colors
+                                                                            .green,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6),
+                                                                        boxShadow: [
+                                                                          BoxShadow(
+                                                                            color:
+                                                                                Colors.grey.withOpacity(0.5),
+                                                                            spreadRadius:
+                                                                                2,
+                                                                            blurRadius:
+                                                                                5,
+                                                                            offset:
+                                                                                Offset(0, 3), // changes position of shadow
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      child:
+                                                                          Row(
+                                                                        mainAxisSize:
+                                                                            MainAxisSize.min,
+                                                                        children: [
+                                                                          Icon(
+                                                                              Icons.edit,
+                                                                              color: primaryFontColor),
+                                                                          SizedBox(
+                                                                              width: 5),
+                                                                          Text(
+                                                                            'Edit',
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color: Colors.white,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              )
+                                                            ],
+                                                          ),
+                                                          SizedBox(
+                                                            width: 20,
+                                                          ),
+                                                          Column(
+                                                            children: [
+                                                              Row(
+                                                                children: [
+                                                                  GestureDetector(
+                                                                    onTap: () {
+                                                                      showDialog(
+                                                                        context:
+                                                                            context,
+                                                                        builder:
+                                                                            (BuildContext
+                                                                                context) {
+                                                                          return AlertDialog(
+                                                                            shape:
+                                                                                RoundedRectangleBorder(
+                                                                              borderRadius: BorderRadius.circular(15.0),
+                                                                            ),
+                                                                            title:
+                                                                                const Text(
+                                                                              "Confirm Delete",
+                                                                              style: TextStyle(
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.red,
+                                                                              ),
+                                                                            ),
+                                                                            content:
+                                                                                const Text(
+                                                                              "Are you sure you want to delete this reply?",
+                                                                              style: TextStyle(fontSize: 16),
+                                                                            ),
+                                                                            actions: [
+                                                                              TextButton(
+                                                                                child: const Text(
+                                                                                  "Cancel",
+                                                                                  style: TextStyle(color: Colors.grey),
+                                                                                ),
+                                                                                onPressed: () {
+                                                                                  Navigator.of(context).pop();
+                                                                                },
+                                                                              ),
+                                                                              ElevatedButton(
+                                                                                child: const Text(
+                                                                                  "Delete",
+                                                                                  style: TextStyle(color: Colors.white),
+                                                                                ),
+                                                                                style: ElevatedButton.styleFrom(
+                                                                                  primary: Colors.red,
+                                                                                  onPrimary: Colors.redAccent,
+                                                                                  shape: RoundedRectangleBorder(
+                                                                                    borderRadius: BorderRadius.circular(8.0),
+                                                                                  ),
+                                                                                ),
+                                                                                onPressed: () {
+                                                                                  Navigator.of(context).pop();
+                                                                                  _deleteDiscuss(diskusi.idDiskusi);
+                                                                                },
+                                                                              ),
+                                                                            ],
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                    child:
+                                                                        Container(
+                                                                      padding: EdgeInsets.symmetric(
+                                                                          vertical:
+                                                                              6,
+                                                                          horizontal:
+                                                                              12),
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: Colors
+                                                                            .red,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6),
+                                                                        boxShadow: [
+                                                                          BoxShadow(
+                                                                            color:
+                                                                                Colors.grey.withOpacity(0.5),
+                                                                            spreadRadius:
+                                                                                2,
+                                                                            blurRadius:
+                                                                                5,
+                                                                            offset:
+                                                                                Offset(0, 3), // changes position of shadow
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      child:
+                                                                          Row(
+                                                                        mainAxisSize:
+                                                                            MainAxisSize.min,
+                                                                        children: [
+                                                                          Icon(
+                                                                              Icons.delete,
+                                                                              color: primaryFontColor),
+                                                                          SizedBox(
+                                                                              width: 5),
+                                                                          Text(
+                                                                            'Delete',
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color: Colors.white,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              )
+                                                            ],
+                                                          )
+                                                        ],
+                                                      );
+                                                    } else {
+                                                      return Container(); // Return an empty container if the user is not an admin
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Material(
+                      color: _currentPage > 1 ? Colors.blue : Colors.grey,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: _currentPage > 1
+                            ? () {
+                                setState(() {
+                                  if (_currentPage > 1) {
+                                    _currentPage--;
+                                    _fetchData();
+                                  }
+                                });
+                              }
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.arrow_back, color: Colors.white),
+                              SizedBox(width: 5),
+                              Text(
+                                'Previous',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    Text(
+                      'Page $_currentPage',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(width: 20),
+                    Material(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          setState(() {
+                            _currentPage++;
+                            _fetchData();
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Next',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              SizedBox(width: 5),
+                              Icon(Icons.arrow_forward, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+// Dashboard
+Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5.0),
+                                      color: thirdColor,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 15.0,
+                                      horizontal: 15.0,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          "Bio",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Divider(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text("Name"),
+                                            Text(alumni.namaALumni ?? 'N/A')
+                                          ],
+                                        ),
+                                        Divider(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text("Email"),
+                                            Text(alumni.email ?? 'N/A')
+                                          ],
+                                        ),
+                                        Divider(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text("Address"),
+                                            Text(alumni.alamat ?? 'N/A')
+                                          ],
+                                        ),
+                                        Divider(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text("Graduate Date"),
+                                            Text(alumni.tanggalLulus != null ?  formatDateString(
+                                                    alumni.tanggalLulus!) :
+                                                'N/A')
+                                          ],
+                                        ),
+                                        Divider(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text("Batch"),
+                                            Text('${alumni.angkatan}' ?? '0')
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),

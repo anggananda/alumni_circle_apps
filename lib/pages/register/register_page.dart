@@ -1,16 +1,51 @@
 import 'package:alumni_circle_app/components/asset_image_widget.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _RegisterPageState extends State<RegisterPage> {
   bool _isChecked = false;
+
+  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  void sendRegister() async {
+    final email = _emailController.text;
+    final username = _usernameController.text;
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if(password != confirmPassword){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password didn't match"))
+      );
+      return;
+    }
+
+    final response = await DataService.sendRegister(email, username, password);
+    if (response.statusCode == 201) {
+      debugPrint('Regiter success');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Register success'))
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      debugPrint('failed ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed: ${response.statusCode}'))
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,7 +120,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     Flexible(
                                       flex:
                                           0, // Tidak ada ruang fleksibel untuk ikon
-                                      child: Icon(Icons.email),
+                                      child: Icon(Icons.person),
                                     ),
                                     SizedBox(
                                       width: 10,
@@ -93,6 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     Expanded(
                                       child: TextFormField(
                                         // initialValue: "email",
+                                        controller: _usernameController,
                                         decoration: const InputDecoration(
                                             labelText: 'Username',
                                             border: InputBorder.none),
@@ -128,6 +164,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                     Expanded(
                                       child: TextFormField(
+                                        controller: _emailController,
                                         // initialValue: "email",
                                         decoration: const InputDecoration(
                                             labelText: 'Email',
@@ -164,6 +201,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                     Expanded(
                                       child: TextFormField(
+                                        controller: _passwordController,
                                         // initialValue: "password",
                                         decoration: const InputDecoration(
                                             labelText: 'Password',
@@ -202,6 +240,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     Expanded(
                                       child: TextFormField(
                                         // initialValue: "password",
+                                        controller: _confirmPasswordController,
                                         decoration: const InputDecoration(
                                             labelText: 'Confirm Password',
                                             border: InputBorder.none),
@@ -221,7 +260,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               // Submit button
                               ElevatedButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(context, '/login');
+                                  sendRegister();
                                 },
                                 style: ElevatedButton.styleFrom(
                                     shape: RoundedRectangleBorder(
@@ -240,24 +279,6 @@ class _SignUpPageState extends State<SignUpPage> {
                               const SizedBox(
                                 height: 20,
                               ),
-                              // Text(
-                              //   "Or continue with :",
-                              //   style: TextStyle(color: primaryFontColor),
-                              // ),
-                              // SizedBox(
-                              //   height: 15,
-                              // ),
-                              // SizedBox(
-                              //   width: double.infinity,
-                              //   height: 45,
-                              //   child: SignInButton(
-                              //     Buttons.Google,
-                              //     onPressed: () {
-                              //       // Fungsi yang akan dijalankan saat tombol ditekan
-                              //       // Anda dapat menambahkan logika autentikasi Google di sini
-                              //     },
-                              //   ),
-                              // ),
                               SizedBox(
                                 height: 20,
                               ),

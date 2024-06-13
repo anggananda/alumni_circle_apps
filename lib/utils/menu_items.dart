@@ -1,15 +1,20 @@
+import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MenuItem {
   final String title;
   final VoidCallback onPressed;
-  final String img; // Tambahkan properti img
+  final String img;
 
   MenuItem({required this.title, required this.onPressed, required this.img});
 }
 
 List<MenuItem> getMenuItems(BuildContext context) {
-  return [
+  final cubit = context.read<ProfileCubit>();
+  final currentState = cubit.state;
+
+  List<MenuItem> menuItems = [
     MenuItem(
       title: 'Discussion',
       img: 'assets/images/discussion.png',
@@ -36,4 +41,14 @@ List<MenuItem> getMenuItems(BuildContext context) {
       onPressed: () => Navigator.pushNamed(context, '/listvacancy'),
     ),
   ];
+
+  if (currentState.roles == 'admin') {
+    menuItems.add(MenuItem(
+      title: 'User Control',
+      img: 'assets/images/listvacancy.png',
+      onPressed: () => Navigator.pushNamed(context, '/user_control'),
+    ));
+  }
+
+  return menuItems;
 }

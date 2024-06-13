@@ -1,7 +1,17 @@
+import 'dart:convert';
+
 import 'package:alumni_circle_app/components/asset_image_widget.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
+import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
+import 'package:alumni_circle_app/dto/login.dart';
+import 'package:alumni_circle_app/dto/profile.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/secure_storage_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:http/http.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,8 +21,58 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  Future<List<Profile>>? _profile;
+
+  void sendLogin(
+      context, AuthCubit authCubit, ProfileCubit profileCubit) async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    final response = await DataService.sendLoginData(email, password);
+    if (response.statusCode == 200) {
+      debugPrint('sending success');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login Successfully'))
+      );
+      final data = jsonDecode(response.body);
+      final loggedIn = Login.fromJson(data);
+      await SecureStorageUtil.storage
+          .write(key: tokenStoreName, value: loggedIn.accessToken);
+      authCubit.login(loggedIn.accessToken);
+      getProfile(profileCubit, loggedIn.accessToken, context);
+
+      debugPrint(loggedIn.accessToken);
+    } else {
+      debugPrint('failed ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.statusCode == 400 ? 'fill in the username and password fields' : 'Incorrect username or password'))
+      );
+    }
+  }
+
+  void getProfile(
+      ProfileCubit profileCubit, String? accessToken, BuildContext context) {
+    if (accessToken == null) {
+      debugPrint('Access token is null');
+      return;
+    }
+
+    DataService.fetchProfile(accessToken).then((profile) {
+      debugPrint(profile.toString());
+      profileCubit.setProfile(profile.roles, profile.idAlumni);
+      Navigator.pushReplacementNamed(context, '/navigate');
+    }).catchError((error) {
+      debugPrint('Error fetching profile: $error');
+      // Show a user-friendly message here
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authCubit = BlocProvider.of<AuthCubit>(context);
+    final profileCubit = BlocProvider.of<ProfileCubit>(context);
     return Scaffold(
       backgroundColor: primaryColor,
       body: Stack(
@@ -85,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                                     Flexible(
                                       flex:
                                           0, // Tidak ada ruang fleksibel untuk ikon
-                                      child: Icon(Icons.email),
+                                      child: Icon(Icons.person),
                                     ),
                                     SizedBox(
                                       width: 10,
@@ -93,14 +153,15 @@ class _LoginPageState extends State<LoginPage> {
                                     Expanded(
                                       child: TextFormField(
                                         // initialValue: "email",
+                                        controller: _emailController,
                                         decoration: const InputDecoration(
-                                            labelText: 'Email',
+                                            labelText: 'Username',
                                             border: InputBorder.none),
                                         keyboardType:
-                                            TextInputType.emailAddress,
+                                            TextInputType.text,
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return 'Please enter your email';
+                                            return 'Please enter your Username';
                                           }
                                           return null;
                                         },
@@ -128,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     Expanded(
                                       child: TextFormField(
-                                        // initialValue: "password",
+                                        controller: _passwordController,
                                         decoration: const InputDecoration(
                                             labelText: 'Password',
                                             border: InputBorder.none),
@@ -160,7 +221,8 @@ class _LoginPageState extends State<LoginPage> {
                               // Submit button
                               ElevatedButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(context, '/navigate');
+                                  // Navigator.pushNamed(context, '/navigate');
+                                  sendLogin(context, authCubit, profileCubit);
                                 },
                                 style: ElevatedButton.styleFrom(
                                     shape: RoundedRectangleBorder(

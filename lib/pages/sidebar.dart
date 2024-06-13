@@ -1,18 +1,30 @@
+import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
+import 'package:alumni_circle_app/services/data_service.dart';
+import 'package:alumni_circle_app/utils/secure_storage_util.dart';
 import 'package:flutter/material.dart';
 // import 'package:my_app/components/asset_image_widget.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
-class SideBar extends StatelessWidget {
+class SideBar extends StatefulWidget {
   const SideBar({super.key});
 
-  // Future<void> _launchURL(String url) async {
-  //   if (await canLaunchUrl(Uri.parse(url))) {
-  //     await launchUrl(Uri.parse(url));
-  //   } else {
-  //     throw 'Could not launch $url';
-  //   }
-  // }
+  @override
+  State<SideBar> createState() => _SideBarState();
+}
+
+class _SideBarState extends State<SideBar> {
+  Future<void> doLogout(context) async {
+    debugPrint("need logout");
+    final response = await DataService.logoutData();
+    if (response.statusCode == 200) {
+      await SecureStorageUtil.storage.delete(key: tokenStoreName);
+      Navigator.pushReplacementNamed(context, "/login");
+    }else{
+      debugPrint('${response.statusCode}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,66 +43,6 @@ class SideBar extends StatelessWidget {
             child: null,
           ),
           ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text(
-              "News | Latihan API",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/newsscreen"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text(
-              "Postingan | Latihan SQLite",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/post"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text(
-              "Latihan Datas",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/datas"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text(
-              "Vertical",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/verticalPage"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.task_sharp),
-            title: const Text(
-              "Customer Service",
-              style: TextStyle(
-                color: primaryFontColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () => Navigator.pushNamed(context, "/customerService"),
-          ),
-          ListTile(
             leading: const Icon(Icons.exit_to_app),
             title: const Text(
               "About US",
@@ -102,17 +54,48 @@ class SideBar extends StatelessWidget {
             ),
             onTap: () => Navigator.pushNamed(context, "/aboutus"),
           ),
-          ListTile(
-            leading: const Icon(Icons.help),
-            title: const Text(
-              "Help",
+          ExpansionTile(
+            leading: Icon(Icons.headset_mic),
+            title: Text(
+              'Support',
               style: TextStyle(
                 color: primaryFontColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            onTap: () => Navigator.pushNamed(context, "/help"),
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.help),
+                title: BlocBuilder<ProfileCubit, ProfileState>(
+                  builder: (context, state) {
+                    if (state.roles == 'admin') {
+                      return Text('Question Box');
+                    } else {
+                      return Text('Question');
+                    }
+                  },
+                ),
+                onTap: () {
+                  Navigator.pushNamed(context, '/help');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.feedback),
+                title: BlocBuilder<ProfileCubit, ProfileState>(
+                  builder: (context, state) {
+                    if (state.roles == 'admin') {
+                      return Text('Feedback Hub');
+                    } else {
+                      return Text('Feedback');
+                    }
+                  },
+                ),
+                onTap: () {
+                  Navigator.pushNamed(context, '/feedback');
+                },
+              ),
+            ],
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app),
@@ -124,7 +107,7 @@ class SideBar extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            onTap: () => Navigator.pushReplacementNamed(context, "/login"),
+            onTap: () => doLogout(context),
           ),
           const Divider(),
           SizedBox(
@@ -135,3 +118,20 @@ class SideBar extends StatelessWidget {
     );
   }
 }
+
+// class SideBar extends StatelessWidget {
+//   const SideBar({super.key});
+
+//   // Future<void> _launchURL(String url) async {
+//   //   if (await canLaunchUrl(Uri.parse(url))) {
+//   //     await launchUrl(Uri.parse(url));
+//   //   } else {
+//   //     throw 'Could not launch $url';
+//   //   }
+//   // }
+
+//   @override
+//   Widget build(BuildContext context) {
+    
+//   }
+// }
