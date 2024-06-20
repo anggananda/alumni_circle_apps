@@ -11,7 +11,7 @@ final Color updateButtonColor = Colors.blue.shade900; // Warna biru tua yang pad
 final Color addButtonColor = Colors.green.shade800; // Warna hijau yang kontras
 final Color deleteButtonColor = Colors.red.shade800; // 
 
-const String googleMapsApiKey = "AIzaSyCv1eZK_N9k5WM-CAXmed-7O2r4vi-WYRA";
+const String googleMapsApiKey = "";
 
 final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ');
 final DateFormat formatDate = DateFormat('yyyy-MM-dd H:mm');
@@ -33,5 +33,3 @@ String formatDateString(String inputDate) {
     throw Exception('Failed to format date: $e');
   }
 }
-
-const String registrationToken = "fsBDXGA7RB2MI2ensq5O6x:APA91bHWbbPwk4-id_jr0Bupozy8Wqnx8fxHqPmiNL84ZJVJKkT3NtE9kgVs-BoqWp0ssEsF-_BaRe-uZfZf4CEoSJ7lb7KFNDAugLFVXUjN5NLG5D_j1gDIzkjUktozpiy3NJTmQke8";
