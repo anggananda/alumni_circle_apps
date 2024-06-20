@@ -3,6 +3,7 @@ import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
 import 'package:alumni_circle_app/dto/vacancy.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/services/data_service.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,46 +32,36 @@ class _DetailVacancyState extends State<DetailVacancy> {
 
     final response = await DataService.sendListVacancy(idAlumni, idVacancy);
     if (response.statusCode == 201) {
-      debugPrint('Success');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Success to add Vacancy to List Vacancy')),
-      );
+      showSuccessDialog(context, 'Success to add Event to List Event');
     } else {
-      debugPrint('Failed: ${response.statusCode}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        // SnackBar(content: Text('Failed: ${response.statusCode}')),
-        const SnackBar(
-            content: Text('The event has been added to the vacancy list')),
-      );
+      showInfoDialog(context, widget.vacancy.namaVacancy,'The event has been added to the event list');
     }
   }
 
   void _deleteVacancy(idVacancy) async {
     final deleteCubit = context.read<VacancyCubit>();
     deleteCubit.deleteVacancy(idVacancy, widget.page!);
-    if (deleteCubit.state.errorMessage == '') {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Delete Discussion')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to Delete Discussion')));
-    }
     Navigator.pop(context);
+    if (deleteCubit.state.errorMessage == '') {
+      showSuccessDialog(context, 'Successfully Delete Vacancy');
+    } else {
+      showErrorDialog(context, 'Failed to vacancy');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Container(
-          color: secondaryColor,
+          color: Colors.white,
           child: Column(
             children: [
               Container(
                 height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: primaryColor,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(10),
                     bottomRight: Radius.circular(10),
@@ -151,17 +142,28 @@ class _DetailVacancyState extends State<DetailVacancy> {
                         ],
                       ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            _sendListVacancy();
-                          },
-                          icon: Icon(
-                            Icons.bookmark_add,
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          _sendListVacancy();
+                        },
+                        icon: Icon(
+                          Icons.bookmark_add,
+                          color: primaryColor,
+                        ),
+                        label: Text(
+                          'Save Vacancy',
+                          style: TextStyle(color: primaryFontColor, fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: primaryColor),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -203,10 +205,8 @@ class _DetailVacancyState extends State<DetailVacancy> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
+                              foregroundColor: Colors.redAccent, backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(
                                   vertical: 14, horizontal: 20),
-                              primary: Colors.red,
-                              onPrimary: Colors.redAccent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -214,57 +214,9 @@ class _DetailVacancyState extends State<DetailVacancy> {
                               shadowColor: Colors.redAccent,
                             ),
                             onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    title: const Text(
-                                      "Confirm Delete",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    content: const Text(
-                                      "Are you sure you want to delete this event?",
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text(
-                                          "Cancel",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      ElevatedButton(
-                                        child: const Text(
-                                          "Delete",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          primary: Colors.red,
-                                          onPrimary: Colors.redAccent,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                          _deleteVacancy(
-                                              widget.vacancy.idVacancy);
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
+                              showConfirmDeleteDialog(context: context, onConfirm: (){
+                                _deleteVacancy(widget.vacancy.idVacancy);
+                              });
                             },
                           ),
                         )

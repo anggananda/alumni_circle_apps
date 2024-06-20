@@ -27,10 +27,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void sendLogin(
       context, AuthCubit authCubit, ProfileCubit profileCubit) async {
-    final email = _emailController.text;
+    final username = _emailController.text;
     final password = _passwordController.text;
 
-    final response = await DataService.sendLoginData(email, password);
+    final response = await DataService.sendLoginData(username, password);
     if (response.statusCode == 200) {
       debugPrint('sending success');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -38,9 +38,10 @@ class _LoginPageState extends State<LoginPage> {
       );
       final data = jsonDecode(response.body);
       final loggedIn = Login.fromJson(data);
+      final token = await SecureStorageUtil.storage.read(key: "device_token");
       await SecureStorageUtil.storage
           .write(key: tokenStoreName, value: loggedIn.accessToken);
-      authCubit.login(loggedIn.accessToken);
+      authCubit.login(loggedIn.accessToken, token!);
       getProfile(profileCubit, loggedIn.accessToken, context);
 
       debugPrint(loggedIn.accessToken);
@@ -81,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
           const Positioned(
             right: 0.0,
             left: 0.0,
-            top: 10,
+            top: 43,
             child: Opacity(
               opacity: 0.8,
               child: Center(
@@ -99,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: 250),
+                  SizedBox(height: 285),
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.only(top: 20),
@@ -236,27 +237,6 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: primaryFontColor),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                "Or continue with :",
-                                style: TextStyle(color: primaryFontColor),
-                              ),
-                              SizedBox(
-                                height: 15,
-                              ),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 45,
-                                child: SignInButton(
-                                  Buttons.Google,
-                                  onPressed: () {
-                                    // Fungsi yang akan dijalankan saat tombol ditekan
-                                    // Anda dapat menambahkan logika autentikasi Google di sini
-                                  },
                                 ),
                               ),
                               SizedBox(

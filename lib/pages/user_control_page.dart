@@ -1,6 +1,9 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
+import 'package:alumni_circle_app/components/error_widget.dart';
+import 'package:alumni_circle_app/components/paggination_page.dart';
 import 'package:alumni_circle_app/cubit/alumni/cubit/alumni_cubit.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +18,7 @@ class UserControlScreen extends StatefulWidget {
 class _UserControlScreenState extends State<UserControlScreen> {
   TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -38,12 +42,26 @@ class _UserControlScreenState extends State<UserControlScreen> {
     final deleteCubit = context.read<AlumniCubit>();
     deleteCubit.deleteAlumni(idAlumni, _currentPage);
     if (deleteCubit.state.errorMessage == '') {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Delete Discussion')));
+      showSuccessDialog(context, 'Successfully Delete User');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to Delete Discussion')));
+      showErrorDialog(context, 'Failed to User');
     }
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
+    });
+    _fetchData();
+  }
+
+  void _onSearchCleared() {
+    setState(() {
+      _searchQuery = "";
+      _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
+    });
+    _fetchData();
   }
 
   @override
@@ -59,20 +77,29 @@ class _UserControlScreenState extends State<UserControlScreen> {
       ),
       body: Column(
         children: [
-          Padding(padding: EdgeInsets.all(12),
-          child: CustomSearchBox(
-            controller: _searchController,
-            onChanged: (value) => _fetchData(),
-            onClear: () => _fetchData(),
-            hintText: 'Search User...',
-          ),),
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: CustomSearchBox(
+              controller: _searchController,
+              onChanged: (value) => _onSearchChanged(value),
+              onClear: () => _onSearchCleared(),
+              hintText: 'Search User...',
+            ),
+          ),
           Expanded(
             child: BlocBuilder<AlumniCubit, AlumniState>(
               builder: (context, state) {
                 if (state.isLoading) {
                   return Center(child: CircularProgressIndicator());
                 } else if (state.errorMessage.isNotEmpty) {
-                  return Center(child: Text(state.errorMessage));
+                  return ErrorDisplay(
+                      message: state.errorMessage,
+                      onRetry: () {
+                        context
+                            .read<AlumniCubit>()
+                            .fetchAlumniAll(1, ''); // Retry fetching events
+                      },
+                    );
                 } else if (state.alumni.isEmpty) {
                   return Center(child: Text('No user data available'));
                 } else {
@@ -125,63 +152,11 @@ class _UserControlScreenState extends State<UserControlScreen> {
                                   Center(
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(15.0),
-                                              ),
-                                              title: const Text(
-                                                "Confirm Delete",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.red,
-                                                ),
-                                              ),
-                                              content: const Text(
-                                                "Are you sure you want to delete this event?",
-                                                style: TextStyle(fontSize: 16),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  child: const Text(
-                                                    "Cancel",
-                                                    style: TextStyle(
-                                                        color: Colors.grey),
-                                                  ),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                                ElevatedButton(
-                                                  child: const Text(
-                                                    "Delete",
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  ),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    primary: Colors.red,
-                                                    onPrimary: Colors.redAccent,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8.0),
-                                                    ),
-                                                  ),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    _deleteUser(
-                                                        alumni.idAlumni);
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
+                                        showConfirmDeleteDialog(
+                                            context: context,
+                                            onConfirm: () {
+                                              _deleteUser(alumni.idAlumni);
+                                            });
                                       },
                                       icon: Icon(
                                         Icons.delete,
@@ -189,8 +164,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
                                       ),
                                       label: Text('Delete User'),
                                       style: ElevatedButton.styleFrom(
-                                        primary: Colors.red,
-                                        onPrimary: Colors.white,
+                                        foregroundColor: Colors.white, backgroundColor: Colors.red,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(10.0),
@@ -215,37 +189,20 @@ class _UserControlScreenState extends State<UserControlScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Material(
-                  color: _currentPage > 1 ? Colors.blue : Colors.grey,
-                  borderRadius: BorderRadius.circular(10),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: _currentPage > 1
-                        ? () {
-                            setState(() {
-                              if (_currentPage > 1) {
-                                _currentPage--;
-                                _fetchData();
-                              }
-                            });
-                          }
-                        : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_back, color: Colors.white),
-                          SizedBox(width: 5),
-                          Text(
-                            'Previous',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                PaginationButton(
+                  buttonTo: 'decrement',
+                  color: colors2,
+                  icon: Icons.arrow_back,
+                  text: 'Previous',
+                  isEnabled: _currentPage > 1,
+                  onTap: () {
+                    setState(() {
+                      if (_currentPage > 1) {
+                        _currentPage--;
+                        _fetchData();
+                      }
+                    });
+                  },
                 ),
                 SizedBox(width: 20),
                 Text(
@@ -255,35 +212,20 @@ class _UserControlScreenState extends State<UserControlScreen> {
                 SizedBox(width: 20),
                 BlocBuilder<AlumniCubit, AlumniState>(
                   builder: (context, state) {
-                    return Material(
-                      color: state.alumni.isEmpty ? Colors.grey : Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () {
-                          setState(() {
-                            state.alumni.isEmpty
-                                ? _currentPage
-                                : _currentPage++;
+                    return PaginationButton(
+                      buttonTo: 'increment',
+                      color: colors2,
+                      icon: Icons.arrow_forward,
+                      text: 'Next',
+                      isEnabled: !state.alumni.isEmpty,
+                      onTap: () {
+                        setState(() {
+                          if (!state.alumni.isEmpty) {
+                            _currentPage++;
                             _fetchData();
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Next',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              SizedBox(width: 5),
-                              Icon(Icons.arrow_forward, color: Colors.white),
-                            ],
-                          ),
-                        ),
-                      ),
+                          }
+                        });
+                      },
                     );
                   },
                 )

@@ -1,32 +1,32 @@
+import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
+import 'package:alumni_circle_app/dto/category.dart';
+import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CategorySemiWebi extends StatelessWidget {
-  const CategorySemiWebi({super.key});
+class DetailCategory extends StatefulWidget {
+  final Categories category;
+  final VoidCallback? onDataSubmitted;
+  const DetailCategory({super.key, required this.category, this.onDataSubmitted});
 
-  static const List<String> imageUrls = [
-  'https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?q=80&w=1466&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  'https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?q=80&w=1466&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  'https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?q=80&w=1466&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  'https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?q=80&w=1466&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  'https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?q=80&w=1466&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-];
+  @override
+  State<DetailCategory> createState() => _DetailCategoryState();
+}
 
-final String description = "The category of educational events on campus encompasses various activities such as seminars, workshops, short courses, panel discussions, leadership training, education fairs, guest lectures, and academic competitions. These events aim to provide participants with new knowledge, skills, and insights beyond formal academic settings, as well as to enhance their experience and understanding of specific topics.";
+class _DetailCategoryState extends State<DetailCategory> {
+  @override
+  void initState() {
+    super.initState();
+    BlocProvider.of<EventCubit>(context)
+        .fetchEventCategory(widget.category.idCategory);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text(
-      //     "Educations",
-      //     style: TextStyle(color: primaryFontColor),
-      //   ),
-      //   centerTitle: true,
-      //   backgroundColor: primaryColor,
-      // ),
-      body: SingleChildScrollView(
-        child: Container(
+        body: SingleChildScrollView(
+      child: Container(
         color: secondaryColor,
         child: Column(
           children: [
@@ -40,8 +40,8 @@ final String description = "The category of educational events on campus encompa
                   bottomRight: Radius.circular(10),
                 ),
                 image: DecorationImage(
-                  image: const NetworkImage(
-                      'https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?q=80&w=1466&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'),
+                  image: NetworkImage(
+                      '${Endpoints.urlUas}/static/storages/${widget.category.image}'),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
                     Colors.black.withOpacity(0.5),
@@ -65,6 +65,7 @@ final String description = "The category of educational events on campus encompa
                         GestureDetector(
                           onTap: () {
                             Navigator.pop(context);
+                            widget.onDataSubmitted!();
                           },
                           child: Container(
                             padding: EdgeInsets.all(5),
@@ -111,10 +112,10 @@ final String description = "The category of educational events on campus encompa
             const SizedBox(
               height: 15.0,
             ),
-             Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
-                description,
+                widget.category.description,
                 textAlign: TextAlign.justify,
                 style: TextStyle(color: primaryFontColor),
               ),
@@ -140,38 +141,69 @@ final String description = "The category of educational events on campus encompa
               height: 5,
             ),
             Container(
-              height: 150,
-              padding: EdgeInsets.all(10),
-              child: ListView.separated(
-                itemCount: imageUrls.length,
-                physics: const BouncingScrollPhysics(),
-                // padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                scrollDirection: Axis.horizontal,
-                separatorBuilder: (BuildContext context, int index) {
-                  // Separator antara event
-                  return const SizedBox(
-                    width: 15.0,
-                  );
-                },
-                itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    width: 150, // Atur lebar container sesuai kebutuhan
-                    decoration: BoxDecoration(
-                    color: Colors.blue, // Ubah warna sesuai kebutuhan
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(image: 
-                      NetworkImage(imageUrls[index]),
-                      fit: BoxFit.cover
-                    )
-                    ),
-                  );
-                },
+  height: 150,
+  padding: EdgeInsets.all(10),
+  child: BlocBuilder<EventCubit, EventState>(
+    builder: (context, state) {
+      if (state.isLoading) {
+        return Center(child: CircularProgressIndicator());
+      } else if (state.errorMessage.isNotEmpty) {
+        return Center(child: Text(state.errorMessage));
+      } else if (state.eventList.isEmpty) {
+        return Container();
+      } else {
+        return ListView.separated(
+          itemCount: state.eventList.length,
+          physics: const BouncingScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          separatorBuilder: (BuildContext context, int index) {
+            return const SizedBox(
+              width: 15.0,
+            );
+          },
+          itemBuilder: (BuildContext context, int index) {
+            final event = state.eventList[index];
+            return Container(
+              width: 150,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                image: DecorationImage(
+                  image: NetworkImage('${Endpoints.urlUas}/static/storages/${event.gambar}'), // Pastikan 'event.imageUrl' mengandung URL gambar
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.5),
+                    BlendMode.darken,
+                  ),
+                ),
               ),
-            ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      event.namaEvent,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }
+    },
+  ),
+)
+
           ],
         ),
       ),
-      ) 
-    );
+    ));
   }
 }

@@ -4,6 +4,8 @@ import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/dto/alumni.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
+import 'package:alumni_circle_app/utils/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -82,9 +84,13 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     final send = context.read<AlumniCubit>(); // Gunakan DiskusiCubit
     send.updateAlumni(currentState.idAlumni, name, gender, address, email,
         graduateDate, batch, jobStatus, _image);
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Successfully Update Profile')));
+
     Navigator.pop(context);
+    if (send.state.errorMessage == '') {
+      showSuccessDialog(context, 'Successfully Update Profile');
+    } else {
+      showErrorDialog(context, 'Failed to update profile');
+    }
   }
 
   @override
@@ -114,7 +120,15 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            _showPicker(context);
+                            // _showPicker(context);
+                            ImagePickerUtil.showPicker(
+                              context: context,
+                              onImagePicked: (File? pickedFile) {
+                                setState(() {
+                                  _image = pickedFile;
+                                });
+                              },
+                            );
                           },
                           child: CircleAvatar(
                             radius: 50,
@@ -129,11 +143,18 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                           right: 0,
                           child: GestureDetector(
                             onTap: () {
-                              _showPicker(context);
+                              ImagePickerUtil.showPicker(
+                                context: context,
+                                onImagePicked: (File? pickedFile) {
+                                  setState(() {
+                                    _image = pickedFile;
+                                  });
+                                },
+                              );
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.green,
+                                color: addButtonColor,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
@@ -145,7 +166,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                               ),
                               padding: EdgeInsets.all(8.0),
                               child: Icon(
-                                Icons.edit,
+                                Icons.camera_alt_rounded,
                                 color: Colors.white,
                               ),
                             ),
@@ -386,7 +407,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         minimumSize: Size(double.infinity, 48),
-                        primary: Colors.green,
+                        backgroundColor: addButtonColor,
                       ),
                       child: Text(
                         'Update Profile',
@@ -400,59 +421,5 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                 ],
               ))),
     );
-  }
-
-  void _showPicker(context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext bc) {
-        return SafeArea(
-          child: Container(
-            child: Wrap(
-              children: <Widget>[
-                ListTile(
-                  leading: Icon(Icons.photo_library),
-                  title: Text('Photo Library'),
-                  onTap: () {
-                    _imgFromGallery();
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.photo_camera),
-                  title: Text('Camera'),
-                  onTap: () {
-                    _imgFromCamera();
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _imgFromCamera() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        _image = null;
-      }
-    });
-  }
-
-  void _imgFromGallery() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        _image = null;
-      }
-    });
   }
 }

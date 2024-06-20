@@ -2,8 +2,9 @@ import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/dto/event.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
-import 'package:alumni_circle_app/pages/update_event_page.dart';
+import 'package:alumni_circle_app/pages/google_map_page.dart';
 import 'package:alumni_circle_app/services/data_service.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +13,8 @@ class DetailEvent extends StatefulWidget {
   final Events event;
   final VoidCallback? onDataSubmitted;
   final int? page;
-  const DetailEvent({Key? key, required this.event, this.onDataSubmitted, this.page})
+  const DetailEvent(
+      {Key? key, required this.event, this.onDataSubmitted, this.page})
       : super(key: key);
 
   @override
@@ -20,7 +22,6 @@ class DetailEvent extends StatefulWidget {
 }
 
 class _DetailEventState extends State<DetailEvent> {
-
   void _sendListEvent() async {
     final cubit = context.read<ProfileCubit>();
     final currentState = cubit.state;
@@ -31,39 +32,44 @@ class _DetailEventState extends State<DetailEvent> {
     debugPrint('$idAlumni, $idEvent');
 
     final response = await DataService.sendListEvent(idAlumni, idEvent);
+
     if (response.statusCode == 201) {
-      debugPrint('Success');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Success to add Event to List Event')),
-      );
+      showSuccessDialog(context, 'Success to add Event to List Event');
     } else {
-      debugPrint('Failed: ${response.statusCode}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The event has been added to the event list')),
-      );
+      showInfoDialog(context, widget.event.namaEvent,
+          'The event has been added to the event list');
     }
   }
 
   void _deleteEvent(idEvent) async {
-
     final deleteCubit = context.read<EventCubit>();
     deleteCubit.deleteEvent(idEvent, widget.page!);
-    if(deleteCubit.state.errorMessage == ''){
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Delete Discussion')));
-    }else{
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to Delete Discussion')));
-    }
     Navigator.pop(context);
+    if (deleteCubit.state.errorMessage == '') {
+      showSuccessDialog(context, 'Successfully Delete Vacancy');
+    } else {
+      showErrorDialog(context, 'Failed to vacancy');
+    }
+  }
+
+  void _navigateToMap(Events event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GoogleMapPage(
+          event: event,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Container(
-          color: secondaryColor,
+          color: Colors.white,
           child: Column(
             children: [
               Container(
@@ -120,24 +126,24 @@ class _DetailEventState extends State<DetailEvent> {
                 height: 20.0,
               ),
               Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Flexible(
                             child: Text(
                               "🌟 ${widget.event.namaEvent}",
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: primaryFontColor),
-                              overflow: TextOverflow
-                                  .ellipsis, // Potong teks jika terlalu panjang
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: primaryFontColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           SizedBox(
@@ -149,18 +155,65 @@ class _DetailEventState extends State<DetailEvent> {
                           ),
                         ],
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        _sendListEvent();
-                      },
-                      icon: Icon(
-                        Icons.bookmark_add,
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                _navigateToMap(widget.event);
+                              },
+                              icon: Icon(
+                                Icons.location_on,
+                                color: Colors.green,
+                              ),
+                              label: Text(
+                                'Open Map',
+                                style: TextStyle(
+                                    color: primaryFontColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.green),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                _sendListEvent();
+                              },
+                              icon: Icon(
+                                Icons.bookmark_add,
+                                color: primaryColor,
+                              ),
+                              label: Text(
+                                'Save Event',
+                                style: TextStyle(
+                                    color: primaryFontColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: primaryColor),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  )),
               const SizedBox(
                 height: 15.0,
               ),
@@ -201,6 +254,27 @@ class _DetailEventState extends State<DetailEvent> {
                               style: TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(
                               text: widget.event.lokasi,
+                              style: TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    width: 370,
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          color: primaryFontColor,
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: 'Category : ',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(
+                              text: widget.event.category,
                               style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   color: Colors.grey)),
@@ -250,93 +324,48 @@ class _DetailEventState extends State<DetailEvent> {
               BlocBuilder<ProfileCubit, ProfileState>(
                   builder: (context, state) {
                 if (state.roles == 'admin') {
-                  return 
-                  Row(children: [
-                    Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Center(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.delete, color: Colors.white),
-                            label: const Text(
-                              "Delete",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 14, horizontal: 20),
-                              primary: Colors.red,
-                              onPrimary: Colors.redAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 5,
-                              shadowColor: Colors.redAccent,
-                            ),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    title: const Text(
-                                      "Confirm Delete",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    content: const Text(
-                                      "Are you sure you want to delete this event?",
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text(
-                                          "Cancel",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      ElevatedButton(
-                                        child: const Text(
-                                          "Delete",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          primary: Colors.red,
-                                          onPrimary: Colors.redAccent,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                          _deleteEvent(widget.event.idEvent);
-                                        },
-                                      ),
-                                    ],
-                                  );
+                  return Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Center(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.white),
+                                label: const Text(
+                                  "Delete",
+                                  style: TextStyle(
+                                    // fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.redAccent, backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(
+                                      vertical: 14, horizontal: 20),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 5,
+                                  shadowColor: Colors.redAccent,
+                                ),
+                                onPressed: () {
+                                  showConfirmDeleteDialog(
+                                      context: context,
+                                      onConfirm: () {
+                                        _deleteEvent(widget.event.idEvent);
+                                      });
                                 },
-                              );
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                  ],);
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  );
                 } else {
                   return Container();
                 }

@@ -216,7 +216,7 @@ class _NewsScreenState extends State<NewsScreen> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              primary: primaryColor,
+              backgroundColor: primaryColor,
             ),
           ),
         ],
@@ -336,7 +336,7 @@ class _NewsScreenState extends State<NewsScreen> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              primary: primaryColor,
+              backgroundColor: primaryColor,
             ),
           ),
         ],

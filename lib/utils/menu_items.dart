@@ -45,7 +45,7 @@ List<MenuItem> getMenuItems(BuildContext context) {
   if (currentState.roles == 'admin') {
     menuItems.add(MenuItem(
       title: 'User Control',
-      img: 'assets/images/listvacancy.png',
+      img: 'assets/images/userControl.png',
       onPressed: () => Navigator.pushNamed(context, '/user_control'),
     ));
   }

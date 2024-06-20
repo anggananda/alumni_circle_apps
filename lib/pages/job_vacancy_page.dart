@@ -1,4 +1,6 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
+import 'package:alumni_circle_app/components/error_widget.dart';
+import 'package:alumni_circle_app/components/paggination_page.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
 import 'package:alumni_circle_app/details/detail_vacancy.dart';
@@ -19,10 +21,9 @@ class JobVacancyPage extends StatefulWidget {
 }
 
 class _JobVacancyPageState extends State<JobVacancyPage> {
-  Future<List<Vacancies>>? _vacancy;
-  List<Vacancies> _filteredVacancy = [];
   late TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
+  String _searchQuery = "";
 
   @override
   void initState() {
@@ -69,9 +70,26 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UpdateVacancyPage(vacancy: vacancy, page: _currentPage),
+        builder: (context) =>
+            UpdateVacancyPage(vacancy: vacancy, page: _currentPage),
       ),
     );
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
+    });
+    _fetchData();
+  }
+
+  void _onSearchCleared() {
+    setState(() {
+      _searchQuery = "";
+      _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
+    });
+    _fetchData();
   }
 
   @override
@@ -103,8 +121,8 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                     horizontal: 20.0, vertical: 30.0),
                 child: CustomSearchBox(
                   controller: _searchController,
-                  onChanged: (value) => _fetchData(),
-                  onClear: () => _fetchData(),
+                  onChanged: (value) => _onSearchChanged(value),
+                  onClear: () => _onSearchCleared(),
                   hintText: 'Search Vacancy...',
                 ),
               ),
@@ -195,7 +213,14 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                   if (state.isLoading) {
                     return Center(child: CircularProgressIndicator());
                   } else if (state.errorMessage.isNotEmpty) {
-                    return Center(child: Text(state.errorMessage));
+                    return ErrorDisplay(
+                      message: state.errorMessage,
+                      onRetry: () {
+                        context
+                            .read<VacancyCubit>()
+                            .fetchVacancy(1, ''); // Retry fetching events
+                      },
+                    );
                   } else if (state.vacancyList.isEmpty) {
                     return Center(child: Text('No discussion data available'));
                   } else {
@@ -296,7 +321,11 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                                   padding: EdgeInsets.only(
                                                       right: 10),
                                                   child: ElevatedButton.icon(
-                                                    icon: const Icon(Icons.edit, size: 20, color: Colors.black,),
+                                                    icon: const Icon(
+                                                      Icons.edit,
+                                                      size: 20,
+                                                      color: Colors.black,
+                                                    ),
                                                     label: const Text(
                                                       "Edit",
                                                       style: TextStyle(
@@ -308,13 +337,10 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                                     ),
                                                     style: ElevatedButton
                                                         .styleFrom(
-                                                      padding: const EdgeInsets
+                                                      foregroundColor: Colors.greenAccent, backgroundColor: Colors.green, padding: const EdgeInsets
                                                           .symmetric(
                                                           vertical: 12,
                                                           horizontal: 16),
-                                                      primary: Colors.green,
-                                                      onPrimary:
-                                                          Colors.greenAccent,
                                                       shape:
                                                           RoundedRectangleBorder(
                                                         borderRadius:
@@ -353,37 +379,20 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Material(
-                      color: _currentPage > 1 ? Colors.blue : Colors.grey,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: _currentPage > 1
-                            ? () {
-                                setState(() {
-                                  if (_currentPage > 1) {
-                                    _currentPage--;
-                                    _fetchData();
-                                  }
-                                });
-                              }
-                            : null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.arrow_back, color: Colors.white),
-                              SizedBox(width: 5),
-                              Text(
-                                'Previous',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    PaginationButton(
+                      buttonTo: 'decrement',
+                      color: colors2,
+                      icon: Icons.arrow_back,
+                      text: 'Previous',
+                      isEnabled: _currentPage > 1,
+                      onTap: () {
+                        setState(() {
+                          if (_currentPage > 1) {
+                            _currentPage--;
+                            _fetchData();
+                          }
+                        });
+                      },
                     ),
                     SizedBox(width: 20),
                     Text(
@@ -391,36 +400,25 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     SizedBox(width: 20),
-                    BlocBuilder<VacancyCubit, VacancyState>(builder: (context, state) {
-                      return Material(
-                      color: state.vacancyList.isEmpty ? Colors.grey: Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () {
-                          setState(() {
-                            state.vacancyList.isEmpty ? _currentPage: _currentPage++;
-                            _fetchData();
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Next',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              SizedBox(width: 5),
-                              Icon(Icons.arrow_forward, color: Colors.white),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                    },)
+                    BlocBuilder<VacancyCubit, VacancyState>(
+                      builder: (context, state) {
+                        return PaginationButton(
+                          buttonTo: 'increment',
+                          color: colors2,
+                          icon: Icons.arrow_forward,
+                          text: 'Next',
+                          isEnabled: !state.vacancyList.isEmpty,
+                          onTap: () {
+                            setState(() {
+                              if (!state.vacancyList.isEmpty) {
+                                _currentPage++;
+                                _fetchData();
+                              }
+                            });
+                          },
+                        );
+                      },
+                    )
                   ],
                 ),
               )

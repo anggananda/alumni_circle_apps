@@ -78,7 +78,7 @@ class _AddPostFormState extends State<AddPostForm> {
                       onPressed: _submit,
                       child: Text('Submit'),
                       style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
+                        backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),

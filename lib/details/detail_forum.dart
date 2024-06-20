@@ -1,10 +1,10 @@
+import 'package:alumni_circle_app/components/toggle_action_widget.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/reply/cubit/reply_cubit.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
 import 'package:alumni_circle_app/dto/reply.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
-import 'package:alumni_circle_app/pages/update_discussion_page.dart';
-import 'package:alumni_circle_app/services/data_service.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,9 +26,14 @@ class _DetailForumState extends State<DetailForum> {
     _fetchData();
   }
 
+  @override
+  void dispose() {
+    _replyController.dispose();
+    super.dispose();
+  }
+
   void _fetchData() {
-    BlocProvider.of<ReplyCubit>(context)
-        .fetchReply(widget.diskusi.idDiskusi);
+    BlocProvider.of<ReplyCubit>(context).fetchReply(widget.diskusi.idDiskusi);
   }
 
   void _sendReply() async {
@@ -39,211 +44,60 @@ class _DetailForumState extends State<DetailForum> {
     final idDiskusi = widget.diskusi.idDiskusi;
     final reply = _replyController.text;
 
+    if (reply.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please fill the reply')));
+      return;
+    }
+
     debugPrint('$idAlumni, $idDiskusi, $reply');
 
     final send = context.read<ReplyCubit>(); // Gunakan DiskusiCubit
     send.sendReply(idAlumni, idDiskusi, reply); // Panggil method sendDiskusi
-    ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Create Discussion')));
-    _replyController.clear();
+    if (send.state.errorMessage == '') {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Success to post reply')));
+      _replyController.clear();
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Failed to post reply')));
+    }
   }
 
-  void _updateReply(Replies replies) async {
+  void _formUpdate(Replies replies) {
     TextEditingController contentController =
         TextEditingController(text: replies.isiReply);
-
-    await showDialog(
+    showEditReplyDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          elevation: 16,
-          child: Container(
-            padding: EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Edit Reply',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextFormField(
-                  controller: contentController,
-                  decoration: InputDecoration(
-                    labelText: 'Content',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
-                  ),
-                  maxLines: 3,
-                  minLines: 1,
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        try {
-
-                          final update = context.read<ReplyCubit>(); // Gunakan DiskusiCubit
-                          update.updateReply(replies.idReply, contentController.text); // Panggil method sendDiskusi
-                          Navigator.of(context).pop();
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                elevation: 16,
-                                child: Container(
-                                  padding: EdgeInsets.all(20.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Text(
-                                        'Success',
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                      SizedBox(height: 20),
-                                      Text(
-                                        'Reply updated successfully.',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      SizedBox(height: 20),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(
-                                          'OK',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: primaryColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        } catch (error) {
-                          print('Failed to update reply: $error');
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                elevation: 16,
-                                child: Container(
-                                  padding: EdgeInsets.all(20.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Text(
-                                        'Error',
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      SizedBox(height: 20),
-                                      Text(
-                                        'Failed to update reply. Please try again.',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      SizedBox(height: 20),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(
-                                          'OK',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: primaryColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        }
-                      },
-                      child: Text(
-                        'Update',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        primary: primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 12.0),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
+      contentController: contentController,
+      onUpdate: () {
+        _updateReply(replies.idReply,
+            contentController.text); // Replace with actual idReply
       },
+      primaryColor: primaryColor,
     );
+  }
+
+  void _updateReply(int idReply, String content) {
+    final update = context.read<ReplyCubit>(); // Gunakan DiskusiCubit
+    update.updateReply(idReply, content); // Panggil method sendDiskusi
+
+    Navigator.of(context).pop();
+    if (update.state.errorMessage == '') {
+      showSuccessDialog(context, 'Successfully Update');
+      _replyController.clear();
+    } else {
+      showErrorDialog(context, 'Failed to update');
+    }
   }
 
   void _deleteReply(idReply) async {
     final deleteCubit = context.read<ReplyCubit>();
     deleteCubit.deleteReply(idReply);
-    if(deleteCubit.state.errorMessage == ''){
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Delete Reply')));
-    }else{
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to Delete Reply')));
+    if (deleteCubit.state.errorMessage == '') {
+      showSuccessDialog(context, 'Success Delete Reply');
+    } else {
+      showErrorDialog(context, 'Failed to delete reply');
     }
   }
 
@@ -322,26 +176,6 @@ class _DetailForumState extends State<DetailForum> {
                             formatDateString(widget.diskusi.tanggal),
                             style: const TextStyle(color: secondaryFontColor),
                           ),
-                          Row(
-                            children: [
-                              IconButton(
-                                onPressed: (){},
-                                icon: const Icon(
-                                  Icons.thumb_up,
-                                  size: 22,
-                                ),
-                              ),
-                              Text("0"),
-                              IconButton(
-                                onPressed: (){},
-                                icon: const Icon(
-                                  Icons.thumb_down,
-                                  size: 22,
-                                ),
-                              ),
-                              Text("0"),
-                            ],
-                          ),
                         ],
                       ),
                       SizedBox(
@@ -363,23 +197,23 @@ class _DetailForumState extends State<DetailForum> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 BlocBuilder<ReplyCubit, ReplyState>(
-                builder: (context, state) {
-                  if (state.isLoading) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (state.errorMessage.isNotEmpty) {
-                    return Center(child: Text(state.errorMessage));
-                  } else if (state.replyList.isEmpty) {
-                    return Center(child: Text('No discussion data available'));
-                  } else {
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: state.replyList.length,
-                      itemBuilder: (context, index) {
-                        final reply = state.replyList[index];
-                        return Container(
+                  builder: (context, state) {
+                    if (state.isLoading) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (state.errorMessage.isNotEmpty) {
+                      return Center(child: Text(state.errorMessage));
+                    } else if (state.replyList.isEmpty) {
+                      return Center(
+                          child: Text('No discussion data available'));
+                    } else {
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: state.replyList.length,
+                        itemBuilder: (context, index) {
+                          final reply = state.replyList[index];
+                          return Container(
                             padding: EdgeInsets.only(left: 20),
                             child: Container(
                               padding: EdgeInsets.all(10),
@@ -418,6 +252,13 @@ class _DetailForumState extends State<DetailForum> {
                                                 color: secondaryFontColor,
                                               ),
                                             ),
+                                            Text(
+                                              '${formatDateString(reply.tanggal)}',
+                                              style: const TextStyle(
+                                                color: secondaryFontColor,
+                                                fontSize: 10
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -428,100 +269,13 @@ class _DetailForumState extends State<DetailForum> {
                                                   state.roles == 'admin'
                                               ? Row(
                                                   children: [
-                                                    IconButton(
-                                                        onPressed: () {
-                                                          showDialog(
-                                                            context: context,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return AlertDialog(
-                                                                shape:
-                                                                    RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              15.0),
-                                                                ),
-                                                                title:
-                                                                    const Text(
-                                                                  "Confirm Delete",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Colors
-                                                                        .red,
-                                                                  ),
-                                                                ),
-                                                                content:
-                                                                    const Text(
-                                                                  "Are you sure you want to delete this reply?",
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          16),
-                                                                ),
-                                                                actions: [
-                                                                  TextButton(
-                                                                    child:
-                                                                        const Text(
-                                                                      "Cancel",
-                                                                      style: TextStyle(
-                                                                          color:
-                                                                              Colors.grey),
-                                                                    ),
-                                                                    onPressed:
-                                                                        () {
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop();
-                                                                    },
-                                                                  ),
-                                                                  ElevatedButton(
-                                                                    child:
-                                                                        const Text(
-                                                                      "Delete",
-                                                                      style: TextStyle(
-                                                                          color:
-                                                                              Colors.white),
-                                                                    ),
-                                                                    style: ElevatedButton
-                                                                        .styleFrom(
-                                                                      primary:
-                                                                          Colors
-                                                                              .red,
-                                                                      onPrimary:
-                                                                          Colors
-                                                                              .redAccent,
-                                                                      shape:
-                                                                          RoundedRectangleBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                    ),
-                                                                    onPressed:
-                                                                        () {
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop();
-                                                                      _deleteReply(
-                                                                          reply
-                                                                              .idReply);
-                                                                    },
-                                                                  ),
-                                                                ],
-                                                              );
-                                                            },
-                                                          );
-                                                        },
-                                                        icon: const Icon(
-                                                            Icons.delete)),
-                                                    IconButton(
-                                                        onPressed: () {
-                                                          _updateReply(reply);
-                                                        },
-                                                        icon: Icon(Icons.edit))
+                                                    ReplyActions(
+                                                      onDelete: () =>
+                                                          _deleteReply(
+                                                              reply.idReply),
+                                                      onEdit: () =>
+                                                          _formUpdate(reply),
+                                                    ),
                                                   ],
                                                 )
                                               : Container());
@@ -529,6 +283,7 @@ class _DetailForumState extends State<DetailForum> {
                                       ),
                                     ],
                                   ),
+                                  SizedBox(height: 8,),
                                   Text(
                                     reply.isiReply,
                                     textAlign: TextAlign.justify,
@@ -538,11 +293,11 @@ class _DetailForumState extends State<DetailForum> {
                               ),
                             ),
                           );
-                      },
-                    );
-                  }
-                },
-              ),
+                        },
+                      );
+                    }
+                  },
+                ),
               ],
             ),
           ),

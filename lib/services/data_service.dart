@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:alumni_circle_app/dto/alumni.dart';
 import 'package:alumni_circle_app/dto/balances.dart';
+import 'package:alumni_circle_app/dto/category.dart';
 import 'package:alumni_circle_app/dto/datas.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
 import 'package:alumni_circle_app/dto/event.dart';
@@ -273,6 +274,23 @@ class DataService {
   }
 
   // !Logout
+  // static Future<http.Response> logoutData() async {
+  //   final url = Uri.parse(Endpoints.logout);
+  //   final String? accessToken =
+  //       await SecureStorageUtil.storage.read(key: tokenStoreName);
+  //   debugPrint("Logout with $accessToken");
+
+  //   final response = await http.post(
+  //     url,
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Authorization': 'Bearer $accessToken'
+  //     },
+  //   );
+
+  //   return response;
+  // }
+
   static Future<http.Response> logoutData() async {
     final url = Uri.parse(Endpoints.logout);
     final String? accessToken =
@@ -281,10 +299,7 @@ class DataService {
 
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken'
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     return response;
@@ -399,8 +414,28 @@ class DataService {
     }
   }
 
-  static Future<http.Response> sendEvent(String eventName, String eventDate,
-      String eventLocation, String eventDescription, File? imageFile) async {
+  static Future<List<Events>> fetchEventCategory(int idCategory) async {
+    final uri = Uri.parse('${Endpoints.event}/read_cate/$idCategory');
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return (data['datas'] as List<dynamic>)
+          .map((item) => Events.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Failed to load datas');
+    }
+  }
+
+  static Future<http.Response> sendEvent(
+      int idCategory,
+      String eventName,
+      String eventDate,
+      String eventLocation,
+      String eventDescription,
+      File? imageFile,
+      String latitude,
+      String longitude) async {
     try {
       var request = http.MultipartRequest(
         'POST',
@@ -408,10 +443,13 @@ class DataService {
             '${Endpoints.event}/create'), // Ganti dengan URL endpoint Anda
       );
 
+      request.fields['id_kategori'] = idCategory.toString();
       request.fields['nama_event'] = eventName;
       request.fields['tanggal_event'] = eventDate;
       request.fields['lokasi'] = eventLocation;
       request.fields['deskripsi'] = eventDescription;
+      request.fields['latitude'] = latitude;
+      request.fields['longitude'] = longitude;
 
       if (imageFile != null) {
         request.files.add(
@@ -431,21 +469,27 @@ class DataService {
 
   static Future<http.Response> updateEvent(
       int idEvent,
+      int idCategory,
       String eventName,
       String eventDate,
       String eventLocation,
       String eventDescription,
-      File? imageFile) async {
+      File? imageFile,
+      String latitude,
+      String longitude) async {
     try {
       var request = http.MultipartRequest(
         'PUT',
         Uri.parse('${Endpoints.event}/update/$idEvent'),
       );
 
+      request.fields['id_kategori'] = idCategory.toString();
       request.fields['nama_event'] = eventName;
       request.fields['tanggal_event'] = eventDate;
       request.fields['lokasi'] = eventLocation;
       request.fields['deskripsi'] = eventDescription;
+      request.fields['latitude'] = latitude;
+      request.fields['longitude'] = longitude;
 
       if (imageFile != null) {
         request.files.add(
@@ -826,5 +870,36 @@ class DataService {
     } else {
       throw Exception('Failed to load feedback');
     }
+  }
+
+  // ? Modul Category
+  static Future<List<Categories>> fetchCategory() async {
+    final uri = Uri.parse('${Endpoints.category}/read');
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return (data['datas'] as List<dynamic>)
+          .map((item) => Categories.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Failed to load feedback');
+    }
+  }
+
+  // ? Notification
+  static Future<http.Response> sendNotification(String title, String body,
+      String fcmToken, String auxData, String accessToken) async {
+    final url = Uri.parse('${Endpoints.notification}/send');
+    final data = {
+      'title': title,
+      'body': body,
+      'aux_data': auxData,
+      'fcm_token': fcmToken,
+    };
+
+    final response = await http.post(url,
+        headers: {'Authorization': 'Bearer $accessToken'}, body: data);
+
+    return response;
   }
 }

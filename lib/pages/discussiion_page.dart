@@ -1,4 +1,6 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
+import 'package:alumni_circle_app/components/error_widget.dart';
+import 'package:alumni_circle_app/components/paggination_page.dart';
 import 'package:alumni_circle_app/cubit/diskusi/cubit/diskusi_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/details/detail_forum.dart';
@@ -6,6 +8,7 @@ import 'package:alumni_circle_app/dto/total.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/pages/discussion_form_page.dart';
 import 'package:alumni_circle_app/pages/update_discussion_page.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
@@ -20,8 +23,9 @@ class DiscussionPage extends StatefulWidget {
 }
 
 class _DiscussionPageState extends State<DiscussionPage> {
-late TextEditingController _searchController; 
+  late TextEditingController _searchController;
   int _currentPage = 1;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -75,13 +79,26 @@ late TextEditingController _searchController;
     final deleteCubit = context.read<DiskusiCubit>();
     deleteCubit.deleteDiskusi(idDiskusi, _currentPage);
     if (deleteCubit.state.errorMessage == '') {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Delete Discussion')));
+      showSuccessDialog(context, 'Delete success.');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to Delete Discussion')));
+      showErrorDialog(context, 'Failed to delete');
     }
-    Navigator.pop(context);
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
+    });
+    _fetchData();
+  }
+
+  void _onSearchCleared() {
+    setState(() {
+      _searchQuery = "";
+      _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
+    });
+    _fetchData();
   }
 
   @override
@@ -119,8 +136,8 @@ late TextEditingController _searchController;
                             horizontal: 20.0, vertical: 10.0),
                         child: CustomSearchBox(
                           controller: _searchController,
-                          onChanged: (value) => _fetchData(),
-                          onClear: () => _fetchData(),
+                          onChanged: (value) => _onSearchChanged(value),
+                          onClear: () => _onSearchCleared(),
                           hintText: 'Search Forum...',
                         ),
                       ),
@@ -138,7 +155,7 @@ late TextEditingController _searchController;
                                   padding: EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 20),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue,
+                                    color: addButtonColor,
                                     borderRadius: BorderRadius.circular(6),
                                     boxShadow: [
                                       BoxShadow(
@@ -176,7 +193,14 @@ late TextEditingController _searchController;
                           if (state.isLoading) {
                             return Center(child: CircularProgressIndicator());
                           } else if (state.errorMessage.isNotEmpty) {
-                            return Center(child: Text(state.errorMessage));
+                            return ErrorDisplay(
+                              message: state.errorMessage,
+                              onRetry: () {
+                                context
+                                    .read<DiskusiCubit>()
+                                    .fetchDiskusi(1, ''); // Retry fetching events
+                              },
+                            );
                           } else if (state.diskusiList.isEmpty) {
                             return Center(
                                 child: Text('No discussion data available'));
@@ -241,7 +265,10 @@ late TextEditingController _searchController;
                                                           MainAxisAlignment
                                                               .spaceBetween,
                                                       children: [
-                                                        Expanded(
+                                                        Padding(
+                                                          padding: EdgeInsets.only(
+                                                            top: 10
+                                                          ),
                                                           child: Text(
                                                             diskusi
                                                                 .subjekDiskusi,
@@ -253,7 +280,7 @@ late TextEditingController _searchController;
                                                                     primaryFontColor,
                                                                 fontSize: 18),
                                                           ),
-                                                        ),
+                                                        )
                                                       ],
                                                     ),
                                                     Text(
@@ -314,7 +341,7 @@ late TextEditingController _searchController;
                                                                                 Container(
                                                                               padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                                                                               decoration: BoxDecoration(
-                                                                                color: Colors.green,
+                                                                                color: updateButtonColor,
                                                                                 borderRadius: BorderRadius.circular(6),
                                                                                 boxShadow: [
                                                                                   BoxShadow(
@@ -355,60 +382,17 @@ late TextEditingController _searchController;
                                                                           GestureDetector(
                                                                             onTap:
                                                                                 () {
-                                                                              showDialog(
-                                                                                context: context,
-                                                                                builder: (BuildContext context) {
-                                                                                  return AlertDialog(
-                                                                                    shape: RoundedRectangleBorder(
-                                                                                      borderRadius: BorderRadius.circular(15.0),
-                                                                                    ),
-                                                                                    title: const Text(
-                                                                                      "Confirm Delete",
-                                                                                      style: TextStyle(
-                                                                                        fontWeight: FontWeight.bold,
-                                                                                        color: Colors.red,
-                                                                                      ),
-                                                                                    ),
-                                                                                    content: const Text(
-                                                                                      "Are you sure you want to delete this reply?",
-                                                                                      style: TextStyle(fontSize: 16),
-                                                                                    ),
-                                                                                    actions: [
-                                                                                      TextButton(
-                                                                                        child: const Text(
-                                                                                          "Cancel",
-                                                                                          style: TextStyle(color: Colors.grey),
-                                                                                        ),
-                                                                                        onPressed: () {
-                                                                                          Navigator.of(context).pop();
-                                                                                        },
-                                                                                      ),
-                                                                                      ElevatedButton(
-                                                                                        child: const Text(
-                                                                                          "Delete",
-                                                                                          style: TextStyle(color: Colors.white),
-                                                                                        ),
-                                                                                        style: ElevatedButton.styleFrom(
-                                                                                          primary: Colors.red,
-                                                                                          onPrimary: Colors.redAccent,
-                                                                                          shape: RoundedRectangleBorder(
-                                                                                            borderRadius: BorderRadius.circular(8.0),
-                                                                                          ),
-                                                                                        ),
-                                                                                        onPressed: () {
-                                                                                          _deleteDiscuss(diskusi.idDiskusi);
-                                                                                        },
-                                                                                      ),
-                                                                                    ],
-                                                                                  );
-                                                                                },
-                                                                              );
+                                                                              showConfirmDeleteDialog(
+                                                                                  context: context,
+                                                                                  onConfirm: () {
+                                                                                    _deleteDiscuss(diskusi.idDiskusi);
+                                                                                  });
                                                                             },
                                                                             child:
                                                                                 Container(
                                                                               padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                                                                               decoration: BoxDecoration(
-                                                                                color: Colors.red,
+                                                                                color: deleteButtonColor,
                                                                                 borderRadius: BorderRadius.circular(6),
                                                                                 boxShadow: [
                                                                                   BoxShadow(
@@ -472,39 +456,20 @@ late TextEditingController _searchController;
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Material(
-                              color:
-                                  _currentPage > 1 ? Colors.blue : Colors.grey,
-                              borderRadius: BorderRadius.circular(10),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(10),
-                                onTap: _currentPage > 1
-                                    ? () {
-                                        setState(() {
-                                          if (_currentPage > 1) {
-                                            _currentPage--;
-                                            _fetchData();
-                                          }
-                                        });
-                                      }
-                                    : null,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.arrow_back,
-                                          color: Colors.white),
-                                      SizedBox(width: 5),
-                                      Text(
-                                        'Previous',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                            PaginationButton(
+                              buttonTo: 'decrement',
+                              color: colors2,
+                              icon: Icons.arrow_back,
+                              text: 'Previous',
+                              isEnabled: _currentPage > 1,
+                              onTap: () {
+                                setState(() {
+                                  if (_currentPage > 1) {
+                                    _currentPage--;
+                                    _fetchData();
+                                  }
+                                });
+                              },
                             ),
                             SizedBox(width: 20),
                             Text(
@@ -514,42 +479,23 @@ late TextEditingController _searchController;
                             SizedBox(width: 20),
                             BlocBuilder<DiskusiCubit, DiskusiState>(
                               builder: (context, state) {
-                                return Material(
-                                  color: state.diskusiList.isEmpty
-                                      ? Colors.grey
-                                      : Colors.blue,
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(10),
-                                    onTap: () {
-                                      setState(() {
-                                        state.diskusiList.isEmpty
-                                            ? _currentPage
-                                            : _currentPage++;
+                                return PaginationButton(
+                                  buttonTo: 'increment',
+                                  color: colors2,
+                                  icon: Icons.arrow_forward,
+                                  text: 'Next',
+                                  isEnabled: !state.diskusiList.isEmpty,
+                                  onTap: () {
+                                    setState(() {
+                                      if (!state.diskusiList.isEmpty) {
+                                        _currentPage++;
                                         _fetchData();
-                                      });
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 10),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Next',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                          SizedBox(width: 5),
-                                          Icon(Icons.arrow_forward,
-                                              color: Colors.white),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                      }
+                                    });
+                                  },
                                 );
                               },
-                            )
+                            ),
                           ],
                         ),
                       )

@@ -50,6 +50,13 @@ dependencies:
   flutter_bloc: ^8.1.5
   meta: ^1.10.0
   flutter_secure_storage: ^9.2.2
+  google_maps_flutter: ^2.5.3
+  location: ^6.0.2
+  flutter_polyline_points: ^2.0.0
+  flutter_local_notifications: ^17.1.2
+  firebase_core: ^3.1.0
+  firebase_messaging: ^15.0.1
+
 
 
 dev_dependencies:
@@ -84,6 +91,10 @@ flutter:
     - assets/images/listvacancy.png
     - assets/images/background.jpg
     - assets/images/aboutUs.png
+    - assets/images/userControl.png
+    - assets/images/source.png
+    - assets/images/destination.png
+    - assets/images/error.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

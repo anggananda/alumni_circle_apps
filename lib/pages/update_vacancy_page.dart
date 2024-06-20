@@ -5,6 +5,8 @@ import 'package:alumni_circle_app/dto/event.dart';
 import 'package:alumni_circle_app/dto/vacancy.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
+import 'package:alumni_circle_app/utils/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,7 +16,8 @@ class UpdateVacancyPage extends StatefulWidget {
   final VoidCallback? onDataSubmitted;
   final Vacancies vacancy;
   final int? page;
-  const UpdateVacancyPage({super.key, required this.vacancy, this.onDataSubmitted, this.page});
+  const UpdateVacancyPage(
+      {super.key, required this.vacancy, this.onDataSubmitted, this.page});
 
   @override
   _UpdateVacancyPageState createState() => _UpdateVacancyPageState();
@@ -27,66 +30,18 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
   File? galleryFile;
   final picker = ImagePicker();
 
-
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.vacancy.namaVacancy);
-    _descriptionController = TextEditingController(text: widget.vacancy.deskripsi);
-  }
-
-  _showPicker({
-    required BuildContext context,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Photo Library'),
-                onTap: () {
-                  getImage(ImageSource.gallery);
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: const Text('Camera'),
-                onTap: () {
-                  getImage(ImageSource.camera);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future getImage(
-    ImageSource img,
-  ) async {
-    final pickedFile = await picker.pickImage(source: img);
-    XFile? xfilePick = pickedFile;
-    setState(
-      () {
-        if (xfilePick != null) {
-          galleryFile = File(pickedFile!.path);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(// is this context <<<
-              const SnackBar(content: Text('Nothing is selected')));
-        }
-      },
-    );
+    _descriptionController =
+        TextEditingController(text: widget.vacancy.deskripsi);
   }
 
   @override
   void dispose() {
-    _nameController.dispose(); // Dispose of controller when widget is removed
+    _nameController.dispose(); 
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -94,11 +49,16 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
     String vacancyName = _nameController.text;
     String vacancyDescription = _descriptionController.text;
 
-  final send = context.read<VacancyCubit>(); // Gunakan DiskusiCubit
-    send.updateVacancy(widget.vacancy.idVacancy, vacancyName, vacancyDescription, galleryFile, widget.page!); 
-    ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Update Event')));
+    final send = context.read<VacancyCubit>(); // Gunakan DiskusiCubit
+    send.updateVacancy(widget.vacancy.idVacancy, vacancyName,
+        vacancyDescription, galleryFile, widget.page!);
+
     Navigator.pop(context);
+    if (send.state.errorMessage == '') {
+      showSuccessDialog(context, 'update success.');
+    } else {
+      showErrorDialog(context, 'Failed to update');
+    }
   }
 
   @override
@@ -123,7 +83,7 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Update Vacancy 🍀",
+                    "Post Vacancy 💼",
                     style: GoogleFonts.poppins(
                       fontSize: 32,
                       color: primaryFontColor,
@@ -134,7 +94,7 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
                     height: 2,
                   ),
                   Text(
-                    "Fill in the data below, make sure you add the data and upload the image",
+                    "Please complete the form below to post a new vacancy. Ensure all required information is provided and an appropriate image is uploaded.",
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: primaryFontColor,
@@ -205,26 +165,32 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    _showPicker(context: context);
+                                    ImagePickerUtil.showPicker(
+                                      context: context,
+                                      onImagePicked: (File? pickedFile) {
+                                        setState(() {
+                                          galleryFile = pickedFile;
+                                        });
+                                      },
+                                    );
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
                                         border: Border(
                                             bottom: BorderSide(
                                                 color: Colors.grey.shade200))),
-                                    width:
-                                        double.infinity, 
-                                    height: 150, 
+                                    width: double.infinity,
+                                    height: 150,
                                     child: galleryFile == null
                                         ? Container(
-                                              padding: EdgeInsets.all(5),
-                                              child: Center(
-                                                  child: Image.network(
-                                                      '${Endpoints.urlUas}/static/storages/${widget.vacancy.gambar}')),
-                                            )
+                                            padding: EdgeInsets.all(5),
+                                            child: Center(
+                                                child: Image.network(
+                                                    '${Endpoints.urlUas}/static/storages/${widget.vacancy.gambar}')),
+                                          )
                                         : Center(
                                             child: Image.file(galleryFile!),
-                                          ), 
+                                          ),
                                   ),
                                 ),
                               ],
@@ -239,12 +205,12 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color.fromRGBO(82, 170, 94, 1.0),
+        backgroundColor: colors2,
         tooltip: 'Update Vacancy',
         onPressed: () {
           _updateVacancy();
         },
-        child: const Icon(Icons.save, color: Colors.white, size: 28),
+        child: const Icon(Icons.send, color: Colors.white, size: 28),
       ),
     );
   }

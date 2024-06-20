@@ -6,11 +6,11 @@ part 'auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(const AuthInitialState());
 
-  void login(String accessToken){
-    emit(AuthState(isLoggedIn: true, accessToken: accessToken));
+  void login(String accessToken, String token){
+    emit(AuthState(isLoggedIn: true, accessToken: accessToken, token: token));
   }
 
   void logout(){
-    emit(const AuthState(isLoggedIn: false, accessToken: ""));
+    emit(const AuthState(isLoggedIn: false, accessToken: "", token: ""));
   }
 }

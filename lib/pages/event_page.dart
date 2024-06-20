@@ -1,4 +1,6 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
+import 'package:alumni_circle_app/components/error_widget.dart';
+import 'package:alumni_circle_app/components/paggination_page.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/details/detail_event.dart';
@@ -21,6 +23,7 @@ class EventPage extends StatefulWidget {
 class _EventPageState extends State<EventPage> {
   late TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -69,6 +72,22 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
+    });
+    _fetchData();
+  }
+
+  void _onSearchCleared() {
+    setState(() {
+      _searchQuery = "";
+      _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
+    });
+    _fetchData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,8 +117,8 @@ class _EventPageState extends State<EventPage> {
                     horizontal: 20.0, vertical: 30.0),
                 child: CustomSearchBox(
                   controller: _searchController,
-                  onChanged: (value) => _fetchData(),
-                  onClear: () => _fetchData(),
+                  onChanged: (value) => _onSearchChanged(value),
+                  onClear: () => _onSearchCleared(),
                   hintText: 'Search Event...',
                 ),
               ),
@@ -191,7 +210,14 @@ class _EventPageState extends State<EventPage> {
                   if (state.isLoading) {
                     return Center(child: CircularProgressIndicator());
                   } else if (state.errorMessage.isNotEmpty) {
-                    return Center(child: Text(state.errorMessage));
+                    return ErrorDisplay(
+                      message: state.errorMessage,
+                      onRetry: () {
+                        context
+                            .read<EventCubit>()
+                            .fetchEvent(1, ''); // Retry fetching events
+                      },
+                    );
                   } else if (state.eventList.isEmpty) {
                     return Center(child: Text('No discussion data available'));
                   } else {
@@ -312,13 +338,10 @@ class _EventPageState extends State<EventPage> {
                                                     ),
                                                     style: ElevatedButton
                                                         .styleFrom(
-                                                      padding: const EdgeInsets
+                                                      foregroundColor: Colors.greenAccent, backgroundColor: Colors.green, padding: const EdgeInsets
                                                           .symmetric(
                                                           vertical: 12,
                                                           horizontal: 16),
-                                                      primary: Colors.green,
-                                                      onPrimary:
-                                                          Colors.greenAccent,
                                                       shape:
                                                           RoundedRectangleBorder(
                                                         borderRadius:
@@ -357,37 +380,20 @@ class _EventPageState extends State<EventPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Material(
-                      color: _currentPage > 1 ? Colors.blue : Colors.grey,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: _currentPage > 1
-                            ? () {
-                                setState(() {
-                                  if (_currentPage > 1) {
-                                    _currentPage--;
-                                    _fetchData();
-                                  }
-                                });
-                              }
-                            : null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.arrow_back, color: Colors.white),
-                              SizedBox(width: 5),
-                              Text(
-                                'Previous',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    PaginationButton(
+                      buttonTo: 'decrement',
+                      color: colors2,
+                      icon: Icons.arrow_back,
+                      text: 'Previous',
+                      isEnabled: _currentPage > 1,
+                      onTap: () {
+                        setState(() {
+                          if (_currentPage > 1) {
+                            _currentPage--;
+                            _fetchData();
+                          }
+                        });
+                      },
                     ),
                     SizedBox(width: 20),
                     Text(
@@ -397,38 +403,20 @@ class _EventPageState extends State<EventPage> {
                     SizedBox(width: 20),
                     BlocBuilder<EventCubit, EventState>(
                       builder: (context, state) {
-                        return Material(
-                          color: state.eventList.isEmpty
-                              ? Colors.grey
-                              : Colors.blue,
-                          borderRadius: BorderRadius.circular(10),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () {
-                              setState(() {
-                                state.eventList.isEmpty
-                                    ? _currentPage
-                                    : _currentPage++;
+                        return PaginationButton(
+                          buttonTo: 'increment',
+                          color: colors2,
+                          icon: Icons.arrow_forward,
+                          text: 'Next',
+                          isEnabled: !state.eventList.isEmpty,
+                          onTap: () {
+                            setState(() {
+                              if (!state.eventList.isEmpty) {
+                                _currentPage++;
                                 _fetchData();
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 10),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Next',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  SizedBox(width: 5),
-                                  Icon(Icons.arrow_forward,
-                                      color: Colors.white),
-                                ],
-                              ),
-                            ),
-                          ),
+                              }
+                            });
+                          },
                         );
                       },
                     )

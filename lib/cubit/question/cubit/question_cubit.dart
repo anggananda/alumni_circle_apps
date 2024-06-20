@@ -8,7 +8,7 @@ part 'question_state.dart';
 
 class QuestionCubit extends Cubit<QuestionState> {
   QuestionCubit() : super(const QuestionState.initial());
-  void fetchFeedback(int page, String search) async {
+  void fetchQuestion(int page, String search) async {
     emit(state.copyWith(isLoading: true));
     try {
       final questionList = await DataService.fetchQuestion(page, search);
@@ -34,7 +34,7 @@ class QuestionCubit extends Cubit<QuestionState> {
           isLoading: false,
           errorMessage: '',
         ));
-        fetchFeedback(page, ''); 
+        fetchQuestion(page, '');
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -48,5 +48,4 @@ class QuestionCubit extends Cubit<QuestionState> {
       ));
     }
   }
-
 }

@@ -26,10 +26,27 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  void sendEvent(String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page) async {
+  void fetchEventCategory(int idCategory) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.sendEvent(eventName, eventDate, eventLocation, eventDescription, imageFile);
+      final eventList = await DataService.fetchEventCategory(idCategory);
+      emit(state.copyWith(
+        eventList: eventList,
+        isLoading: false,
+        errorMessage: '',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to fetch diskusi',
+      ));
+    }
+  }
+
+  void sendEvent(int idCategory, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page, String latitude, String longitude) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final response = await DataService.sendEvent(idCategory, eventName, eventDate, eventLocation, eventDescription, imageFile, latitude, longitude);
       if (response.statusCode == 201) {
         emit(state.copyWith(
           isLoading: false,
@@ -50,10 +67,10 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  void updateEvent(int idEvent, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page) async {
+  void updateEvent(int idEvent, int idCategory, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page, String latitude, String longitude) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.updateEvent(idEvent, eventName, eventDate, eventLocation, eventDescription, imageFile);
+      final response = await DataService.updateEvent(idEvent, idCategory, eventName, eventDate, eventLocation, eventDescription, imageFile, latitude, longitude);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,

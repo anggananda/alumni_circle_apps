@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:alumni_circle_app/cubit/category/cubit/category_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/dto/event.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
-import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
+import 'package:alumni_circle_app/utils/dialog_helpers.dart';
+import 'package:alumni_circle_app/utils/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,7 +15,8 @@ class UpdateEventPage extends StatefulWidget {
   final VoidCallback? onDataSubmitted;
   final Events event;
   final int? page;
-  const UpdateEventPage({super.key, required this.event, this.onDataSubmitted, this.page});
+  const UpdateEventPage(
+      {super.key, required this.event, this.onDataSubmitted, this.page});
 
   @override
   _UpdateEventPageState createState() => _UpdateEventPageState();
@@ -24,72 +27,37 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
   late TextEditingController _dateController = TextEditingController();
   late TextEditingController _locationController = TextEditingController();
   late TextEditingController _descriptionController = TextEditingController();
+  late TextEditingController _latitudeController = TextEditingController();
+  late TextEditingController _longitudeController = TextEditingController();
+  late int selectedCategoryId;
 
   File? galleryFile;
   final picker = ImagePicker();
 
-
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.event.namaEvent);
-    _dateController = TextEditingController(text: formatDateString(widget.event.tanggalEvent));
+    _dateController = TextEditingController(
+        text: formatDateString(widget.event.tanggalEvent));
     _locationController = TextEditingController(text: widget.event.lokasi);
-    _descriptionController = TextEditingController(text: widget.event.deskripsi);
-  }
-
-  _showPicker({
-    required BuildContext context,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Photo Library'),
-                onTap: () {
-                  getImage(ImageSource.gallery);
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: const Text('Camera'),
-                onTap: () {
-                  getImage(ImageSource.camera);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future getImage(
-    ImageSource img,
-  ) async {
-    final pickedFile = await picker.pickImage(source: img);
-    XFile? xfilePick = pickedFile;
-    setState(
-      () {
-        if (xfilePick != null) {
-          galleryFile = File(pickedFile!.path);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(// is this context <<<
-              const SnackBar(content: Text('Nothing is selected')));
-        }
-      },
-    );
+    _descriptionController =
+        TextEditingController(text: widget.event.deskripsi);
+    _latitudeController =
+        TextEditingController(text: widget.event.latitude.toString());
+    _longitudeController =
+        TextEditingController(text: widget.event.longitude.toString());
+    selectedCategoryId = widget.event.idCategory;
   }
 
   @override
   void dispose() {
-    _nameController.dispose(); // Dispose of controller when widget is removed
+    _nameController.dispose();
+    _dateController.dispose();
+    _locationController.dispose();
+    _descriptionController.dispose();
+    _latitudeController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -98,14 +66,29 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
     String eventDate = _dateController.text;
     String eventLocation = _locationController.text;
     String eventDescription = _descriptionController.text;
+    String latitude = _latitudeController.text;
+    String longitude = _longitudeController.text;
 
     debugPrint(eventDate);
 
-  final send = context.read<EventCubit>(); // Gunakan DiskusiCubit
-    send.updateEvent(widget.event.idEvent, eventName, eventDate, eventLocation, eventDescription, galleryFile, widget.page!); 
-    ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully Update Event')));
+    final send = context.read<EventCubit>(); // Gunakan DiskusiCubit
+    send.updateEvent(
+        widget.event.idEvent,
+        selectedCategoryId,
+        eventName,
+        eventDate,
+        eventLocation,
+        eventDescription,
+        galleryFile,
+        widget.page!,
+        latitude,
+        longitude);
     Navigator.pop(context);
+    if (send.state.errorMessage == '') {
+      showSuccessDialog(context, 'update success.');
+    } else {
+      showErrorDialog(context, 'Failed to update');
+    }
   }
 
   @override
@@ -130,7 +113,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Update Events 🍀",
+                    "Post Event 🎊",
                     style: GoogleFonts.poppins(
                       fontSize: 32,
                       color: primaryFontColor,
@@ -141,7 +124,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                     height: 2,
                   ),
                   Text(
-                    "Fill in the data below, make sure you add the data and upload the image",
+                    "Please fill in the details below and upload an image to create your event.",
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: primaryFontColor,
@@ -240,28 +223,104 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                                         border: InputBorder.none),
                                   ),
                                 ),
+                                BlocBuilder<CategoryCubit, CategoryState>(
+                                  builder: (context, state) {
+                                    return DropdownButtonFormField<int>(
+                                      value: selectedCategoryId,
+                                      items: state.categoryList.map((category) {
+                                        return DropdownMenuItem<int>(
+                                          value: category.idCategory,
+                                          child: Text(
+                                            category.nameCategory,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors
+                                                  .black, // Sesuaikan dengan warna teks yang diinginkan
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedCategoryId = value!;
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 12),
+                                        labelText: 'Category',
+                                        labelStyle: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 16,
+                                        ),
+                                        border: InputBorder
+                                            .none, // Menghilangkan outline
+                                        focusedBorder: InputBorder
+                                            .none, // Menghilangkan outline saat focus
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Divider(color: Colors.grey.shade200),
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                          bottom: BorderSide(
+                                              color: Colors.grey.shade200))),
+                                  child: TextField(
+                                    controller: _latitudeController,
+                                    decoration: const InputDecoration(
+                                        hintText: "latitude",
+                                        hintStyle:
+                                            TextStyle(color: Colors.grey),
+                                        border: InputBorder.none),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                          bottom: BorderSide(
+                                              color: Colors.grey.shade200))),
+                                  child: TextField(
+                                    controller: _longitudeController,
+                                    decoration: const InputDecoration(
+                                        hintText: "longitude",
+                                        hintStyle:
+                                            TextStyle(color: Colors.grey),
+                                        border: InputBorder.none),
+                                  ),
+                                ),
                                 GestureDetector(
                                   onTap: () {
-                                    _showPicker(context: context);
+                                    ImagePickerUtil.showPicker(
+                                      context: context,
+                                      onImagePicked: (File? pickedFile) {
+                                        setState(() {
+                                          galleryFile = pickedFile;
+                                        });
+                                      },
+                                    );
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
                                         border: Border(
                                             bottom: BorderSide(
                                                 color: Colors.grey.shade200))),
-                                    width:
-                                        double.infinity, 
-                                    height: 150, 
+                                    width: double.infinity,
+                                    height: 150,
                                     child: galleryFile == null
                                         ? Container(
-                                              padding: EdgeInsets.all(5),
-                                              child: Center(
-                                                  child: Image.network(
-                                                      '${Endpoints.urlUas}/static/storages/${widget.event.gambar}')),
-                                            )
+                                            padding: EdgeInsets.all(5),
+                                            child: Center(
+                                                child: Image.network(
+                                                    '${Endpoints.urlUas}/static/storages/${widget.event.gambar}')),
+                                          )
                                         : Center(
                                             child: Image.file(galleryFile!),
-                                          ), 
+                                          ),
                                   ),
                                 ),
                               ],
@@ -276,7 +335,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color.fromRGBO(82, 170, 94, 1.0),
+        backgroundColor: colors2,
         tooltip: 'Increment',
         onPressed: () {
           _updateEvent();

@@ -82,8 +82,7 @@ class _PostinganPageState extends State<PostPage> {
               },
               child: Text('Update'),
               style: ElevatedButton.styleFrom(
-                primary: primaryColor, // background color
-                onPrimary: primaryFontColor, // text color
+                foregroundColor: primaryFontColor, backgroundColor: primaryColor, // text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),

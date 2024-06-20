@@ -45,7 +45,7 @@ class _NavigatorBarPageState extends State<NavigatorBarPage> {
             fontSize: 26,
           ),),
         backgroundColor: primaryColor,
-        centerTitle: true,
+        centerTitle: true
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: CurvedNavigationBar(
@@ -55,12 +55,12 @@ class _NavigatorBarPageState extends State<NavigatorBarPage> {
           Icon(
             Icons.home,
             size: 30.0,
-            color: _selectedIndex == 0 ? primaryFontColor : primaryColor,
+            color: _selectedIndex == 0 ? primaryFontColor : colors2,
           ),
           Icon(
             Icons.person,
             size: 30.0,
-            color: _selectedIndex == 1 ? primaryFontColor : primaryColor,
+            color: _selectedIndex == 1 ? primaryFontColor : colors2,
           ),
         ],
         index: _selectedIndex,

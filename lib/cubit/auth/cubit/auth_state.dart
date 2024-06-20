@@ -4,9 +4,10 @@ part of 'auth_cubit.dart';
 class AuthState {
   final bool isLoggedIn;
   final String? accessToken;
-  const AuthState({required this.isLoggedIn, this.accessToken});
+  final String? token;
+  const AuthState({required this.isLoggedIn, this.accessToken, this.token});
 }
 
 final class AuthInitialState extends AuthState {
-  const AuthInitialState() : super(isLoggedIn: true, accessToken: "");
+  const AuthInitialState() : super(isLoggedIn: true, accessToken: "", token: "");
 }

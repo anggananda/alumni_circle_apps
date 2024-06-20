@@ -5,7 +5,6 @@ import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/pages/updateform/update_data.dart';
 import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
-// import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -125,7 +124,7 @@ class _DatasScreenState extends State<DatasScreen> {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                primary: primaryColor,
+                backgroundColor: primaryColor,
               ),
             ),
           ],

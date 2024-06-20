@@ -17,16 +17,17 @@ class Endpoints {
 
   // ? Aunt
   // static const String login = "$urlDatas/api/auth/login";
-  static const String logout = "$urlDatas/api/auth/logout";
+  // static const String logout = "$urlDatas/api/auth/logout";
 
   // ! Project UAS
-  // static const String host = "10.0.2.2";
-  static const String host = "10.11.0.71";
+  static const String host = "10.0.2.2";
+  // static const String host = "192.168.87.236";
 
   static const String urlUas = "http://$host:5000";
 
   static const String alumni = "$urlUas/api/v1/alumni";
   static const String event = "$urlUas/api/v1/event";
+  static const String category= "$urlUas/api/v1/kategori";
   static const String vacancy = "$urlUas/api/v1/vacancy";
   static const String feedback = "$urlUas/api/v1/feedback";
   static const String question = "$urlUas/api/v1/question";
@@ -37,5 +38,7 @@ class Endpoints {
   static const String discussion = "$urlUas/api/v1/discussion";
   static const String profile = "$urlUas/api/v1/private/profile";
   static const String login = "$urlUas/api/v1/auth/login";
+  static const String logout = "$urlUas/api/v1/auth/logout";
   static const String register = "$urlUas/api/v1/auth/register";
+  static const String notification = "$urlUas/api/v1/private/fcm";
 }
