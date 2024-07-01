@@ -41,4 +41,34 @@ class Alumni {
         roles: json['roles'] as String,
         fotoProfile: json['foto_profile'] as String,
       );
+
+  Map<String, dynamic> toMap() => {
+        'id_alumni': idAlumni,
+        'nama_alumni': namaALumni,
+        'jenis_kelamin': jenisKelamin,
+        'alamat': alamat,
+        'email': email,
+        'tanggal_lulus': tanggalLulus,
+        'angkatan': angkatan,
+        'status_pekerjaan': statusPekerjaan,
+        'username': username,
+        'password': password,
+        'roles': roles,
+        'foto_profile': fotoProfile,
+      };
+
+  factory Alumni.fromMap(Map<String, dynamic> map) => Alumni(
+        idAlumni: map['id_alumni'] as int,
+        namaALumni: map['nama_alumni'] as String?,
+        jenisKelamin: map['jenis_kelamin'] as String?,
+        alamat: map['alamat'] as String?,
+        email: map['email'] as String?,
+        tanggalLulus: map['tanggal_lulus'] as String?,
+        angkatan: map['angkatan'] as String?,
+        statusPekerjaan: map['status_pekerjaan'] as String?,
+        username: map['username'] as String,
+        password: map['password'] as String,
+        roles: map['roles'] as String,
+        fotoProfile: map['foto_profile'] as String,
+      );
 }

@@ -1,16 +1,15 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
 import 'package:alumni_circle_app/components/error_widget.dart';
 import 'package:alumni_circle_app/components/paggination_page.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/diskusi/cubit/diskusi_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/details/detail_forum.dart';
-import 'package:alumni_circle_app/dto/total.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/pages/discussion_form_page.dart';
 import 'package:alumni_circle_app/pages/update_discussion_page.dart';
 import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
-import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,13 +18,14 @@ class DiscussionPage extends StatefulWidget {
   const DiscussionPage({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _DiscussionPageState createState() => _DiscussionPageState();
 }
 
 class _DiscussionPageState extends State<DiscussionPage> {
   late TextEditingController _searchController;
   int _currentPage = 1;
-  String _searchQuery = '';
+  // String _searchQuery = '';
 
   @override
   void initState() {
@@ -41,8 +41,9 @@ class _DiscussionPageState extends State<DiscussionPage> {
   }
 
   void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<DiskusiCubit>(context)
-        .fetchDiskusi(_currentPage, _searchController.text);
+        .fetchDiskusi(_currentPage, _searchController.text, accessToken!);
   }
 
   void _navigateToDetail(Diskusi diskusi) {
@@ -76,8 +77,9 @@ class _DiscussionPageState extends State<DiscussionPage> {
   }
 
   void _deleteDiscuss(int idDiskusi) async {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final deleteCubit = context.read<DiskusiCubit>();
-    deleteCubit.deleteDiskusi(idDiskusi, _currentPage);
+    deleteCubit.deleteDiskusi(idDiskusi, _currentPage, accessToken!);
     if (deleteCubit.state.errorMessage == '') {
       showSuccessDialog(context, 'Delete success.');
     } else {
@@ -87,7 +89,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value;
+      // _searchQuery = value;
       _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
     });
     _fetchData();
@@ -95,7 +97,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
 
   void _onSearchCleared() {
     setState(() {
-      _searchQuery = "";
+      // _searchQuery = "";
       _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
     });
     _fetchData();
@@ -118,7 +120,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
               Container(
                 height: 30,
                 width: double.infinity,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: primaryColor,
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(10),
@@ -127,12 +129,13 @@ class _DiscussionPageState extends State<DiscussionPage> {
                 ),
               ),
               SingleChildScrollView(
+                // ignore: avoid_unnecessary_containers
                 child: Container(
                   child: Column(
                     children: [
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 20.0, vertical: 10.0),
                         child: CustomSearchBox(
                           controller: _searchController,
@@ -143,16 +146,16 @@ class _DiscussionPageState extends State<DiscussionPage> {
                       ),
                       Column(
                         children: [
-                          SizedBox(height: 30),
+                          const SizedBox(height: 30),
                           Row(
                             children: [
-                              SizedBox(width: 15),
+                              const SizedBox(width: 15),
                               GestureDetector(
                                 onTap: () {
                                   _navigateToForm();
                                 },
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 20),
                                   decoration: BoxDecoration(
                                     color: addButtonColor,
@@ -162,12 +165,12 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                         color: Colors.grey.withOpacity(0.5),
                                         spreadRadius: 2,
                                         blurRadius: 5,
-                                        offset: Offset(
+                                        offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),
                                     ],
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(Icons.add, color: Colors.white),
@@ -191,23 +194,26 @@ class _DiscussionPageState extends State<DiscussionPage> {
                       BlocBuilder<DiskusiCubit, DiskusiState>(
                         builder: (context, state) {
                           if (state.isLoading) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           } else if (state.errorMessage.isNotEmpty) {
-                            return ErrorDisplay(
-                              message: state.errorMessage,
-                              onRetry: () {
-                                context
-                                    .read<DiskusiCubit>()
-                                    .fetchDiskusi(1, ''); // Retry fetching events
+                            return BlocBuilder<AuthCubit, AuthState>(
+                              builder: (context, state) {
+                                return ErrorDisplay(
+                                  message: "Failed to fetch discussion",
+                                  onRetry: () {
+                                    context.read<DiskusiCubit>().fetchDiskusi(
+                                        1, '', state.accessToken!); // Retry fetching events
+                                  },
+                                );
                               },
                             );
                           } else if (state.diskusiList.isEmpty) {
-                            return Center(
+                            return const Center(
                                 child: Text('No discussion data available'));
                           } else {
                             return ListView.builder(
                               shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
+                              physics: const NeverScrollableScrollPhysics(),
                               itemCount: state.diskusiList.length,
                               itemBuilder: (context, index) {
                                 final diskusi = state.diskusiList[index];
@@ -229,7 +235,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                     .withOpacity(0.1),
                                                 spreadRadius: 2,
                                                 blurRadius: 5,
-                                                offset: Offset(0, 3),
+                                                offset: const Offset(0, 3),
                                               ),
                                             ],
                                             borderRadius:
@@ -266,9 +272,9 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                               .spaceBetween,
                                                       children: [
                                                         Padding(
-                                                          padding: EdgeInsets.only(
-                                                            top: 10
-                                                          ),
+                                                          padding:
+                                                              const EdgeInsets.only(
+                                                                  top: 10),
                                                           child: Text(
                                                             diskusi
                                                                 .subjekDiskusi,
@@ -309,7 +315,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                         ),
                                                       ],
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 10,
                                                     ),
                                                     Row(
@@ -339,7 +345,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                                             },
                                                                             child:
                                                                                 Container(
-                                                                              padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                                                                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                                                                               decoration: BoxDecoration(
                                                                                 color: updateButtonColor,
                                                                                 borderRadius: BorderRadius.circular(6),
@@ -348,11 +354,11 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                                                     color: Colors.grey.withOpacity(0.5),
                                                                                     spreadRadius: 2,
                                                                                     blurRadius: 5,
-                                                                                    offset: Offset(0, 3), // changes position of shadow
+                                                                                    offset: const Offset(0, 3), // changes position of shadow
                                                                                   ),
                                                                                 ],
                                                                               ),
-                                                                              child: Row(
+                                                                              child: const Row(
                                                                                 mainAxisSize: MainAxisSize.min,
                                                                                 children: [
                                                                                   Icon(Icons.edit, color: primaryFontColor),
@@ -372,7 +378,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                                       )
                                                                     ],
                                                                   ),
-                                                                  SizedBox(
+                                                                  const SizedBox(
                                                                     width: 20,
                                                                   ),
                                                                   Column(
@@ -390,7 +396,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                                             },
                                                                             child:
                                                                                 Container(
-                                                                              padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                                                                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                                                                               decoration: BoxDecoration(
                                                                                 color: deleteButtonColor,
                                                                                 borderRadius: BorderRadius.circular(6),
@@ -399,11 +405,11 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                                                     color: Colors.grey.withOpacity(0.5),
                                                                                     spreadRadius: 2,
                                                                                     blurRadius: 5,
-                                                                                    offset: Offset(0, 3), // changes position of shadow
+                                                                                    offset: const Offset(0, 3), // changes position of shadow
                                                                                   ),
                                                                                 ],
                                                                               ),
-                                                                              child: Row(
+                                                                              child: const Row(
                                                                                 mainAxisSize: MainAxisSize.min,
                                                                                 children: [
                                                                                   Icon(Icons.delete, color: primaryFontColor),
@@ -432,7 +438,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                                         ),
                                                       ],
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 10,
                                                     )
                                                   ],
@@ -452,7 +458,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                       ),
                       Container(
                         padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                            const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -471,12 +477,12 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                 });
                               },
                             ),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             Text(
                               'Page $_currentPage',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             BlocBuilder<DiskusiCubit, DiskusiState>(
                               builder: (context, state) {
                                 return PaginationButton(
@@ -484,10 +490,10 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                   color: colors2,
                                   icon: Icons.arrow_forward,
                                   text: 'Next',
-                                  isEnabled: !state.diskusiList.isEmpty,
+                                  isEnabled: state.diskusiList.isNotEmpty,
                                   onTap: () {
                                     setState(() {
-                                      if (!state.diskusiList.isEmpty) {
+                                      if (state.diskusiList.isNotEmpty) {
                                         _currentPage++;
                                         _fetchData();
                                       }

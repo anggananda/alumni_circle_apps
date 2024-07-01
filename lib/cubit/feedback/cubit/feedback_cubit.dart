@@ -8,12 +8,12 @@ part 'feedback_state.dart';
 
 class FeedbackCubit extends Cubit<FeedbackState> {
   FeedbackCubit() : super(const FeedbackState.initial());
-  void fetchFeedback(int page, String search) async {
+  void fetchFeedback(int page, String search, String accessToken) async {
   emit(state.copyWith(isLoading: true));
   try {
-    print('Fetching feedback for page $page with search query "$search"'); // Logging
-    final feedbackList = await DataService.fetchFeedback(page, search);
-    print('Fetched feedback: $feedbackList'); // Logging
+    // Logging
+    final feedbackList = await DataService.fetchFeedback(page, search, accessToken);
+    // Logging
 
     emit(state.copyWith(
       feedbackList: feedbackList,
@@ -21,7 +21,7 @@ class FeedbackCubit extends Cubit<FeedbackState> {
       errorMessage: '',
     ));
   } catch (e) {
-    print('Error fetching feedback: $e'); // Logging
+    // Logging
     emit(state.copyWith(
       isLoading: false,
       errorMessage: 'Failed to fetch feedback',
@@ -30,16 +30,16 @@ class FeedbackCubit extends Cubit<FeedbackState> {
 }
 
 
-  void sendFeedback(int idAlumni, String feedback, int page) async {
+  void sendFeedback(int idAlumni, String feedback, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.sendFeedback(idAlumni, feedback);
+      final response = await DataService.sendFeedback(idAlumni, feedback, accessToken);
       if (response.statusCode == 201) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchFeedback(page, ''); 
+        fetchFeedback(page, '', accessToken); 
       } else {
         emit(state.copyWith(
           isLoading: false,

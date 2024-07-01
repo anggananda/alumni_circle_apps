@@ -1,3 +1,4 @@
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
 import 'package:alumni_circle_app/dto/vacancy.dart';
@@ -29,8 +30,9 @@ class _DetailVacancyState extends State<DetailVacancy> {
     final idVacancy = widget.vacancy.idVacancy;
 
     debugPrint('$idAlumni, $idVacancy');
+    final accessToken = context.read<AuthCubit>().state.accessToken;
 
-    final response = await DataService.sendListVacancy(idAlumni, idVacancy);
+    final response = await DataService.sendListVacancy(idAlumni, idVacancy, accessToken!);
     if (response.statusCode == 201) {
       showSuccessDialog(context, 'Success to add Event to List Event');
     } else {
@@ -39,8 +41,9 @@ class _DetailVacancyState extends State<DetailVacancy> {
   }
 
   void _deleteVacancy(idVacancy) async {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final deleteCubit = context.read<VacancyCubit>();
-    deleteCubit.deleteVacancy(idVacancy, widget.page!);
+    deleteCubit.deleteVacancy(idVacancy, widget.page!, accessToken!);
     Navigator.pop(context);
     if (deleteCubit.state.errorMessage == '') {
       showSuccessDialog(context, 'Successfully Delete Vacancy');
@@ -78,12 +81,12 @@ class _DetailVacancyState extends State<DetailVacancy> {
                 ),
                 child: Column(
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 8,
                     ),
                     Container(
                       height: 70,
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 15.0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +97,7 @@ class _DetailVacancyState extends State<DetailVacancy> {
                               Navigator.pop(context);
                             },
                             child: Container(
-                              padding: EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 color: secondaryColor,
@@ -112,7 +115,7 @@ class _DetailVacancyState extends State<DetailVacancy> {
                 height: 20.0,
               ),
               Padding(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 20.0,
                 ),
                 child: Row(
@@ -124,7 +127,7 @@ class _DetailVacancyState extends State<DetailVacancy> {
                           Flexible(
                             child: Text(
                               "🌟 ${widget.vacancy.namaVacancy}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: primaryFontColor),
@@ -132,10 +135,10 @@ class _DetailVacancyState extends State<DetailVacancy> {
                                   .ellipsis, // Potong teks jika terlalu panjang
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10.0,
                           ),
-                          Text(
+                          const Text(
                             "Details",
                             style: TextStyle(color: primaryFontColor),
                           ),
@@ -147,18 +150,18 @@ class _DetailVacancyState extends State<DetailVacancy> {
                         onPressed: () {
                           _sendListVacancy();
                         },
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.bookmark_add,
                           color: primaryColor,
                         ),
-                        label: Text(
+                        label: const Text(
                           'Save Vacancy',
                           style: TextStyle(color: primaryFontColor, fontWeight: FontWeight.bold),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: primaryColor),
+                          side: const BorderSide(color: primaryColor),
                           padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -171,15 +174,15 @@ class _DetailVacancyState extends State<DetailVacancy> {
               const SizedBox(
                 height: 15.0,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   widget.vacancy.deskripsi,
                   textAlign: TextAlign.justify,
-                  style: TextStyle(color: primaryFontColor),
+                  style: const TextStyle(color: primaryFontColor),
                 ),
               ),
               const SizedBox(
@@ -189,7 +192,7 @@ class _DetailVacancyState extends State<DetailVacancy> {
                   builder: (context, state) {
                 if (state.roles == 'admin') {
                   return Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [

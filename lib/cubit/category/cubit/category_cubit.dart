@@ -8,10 +8,10 @@ part 'category_state.dart';
 class CategoryCubit extends Cubit<CategoryState> {
   CategoryCubit() : super(const CategoryState.initial());
 
-  void fetchCategory() async {
+  void fetchCategory(String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final categoryList = await DataService.fetchCategory();
+      final categoryList = await DataService.fetchCategory(accessToken);
       emit(state.copyWith(
         categoryList: categoryList,
         isLoading: false,

@@ -11,7 +11,7 @@ void showSuccessDialog(BuildContext context, String message) {
         ),
         elevation: 16,
         child: Container(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -20,34 +20,36 @@ void showSuccessDialog(BuildContext context, String message) {
                 color: Colors.green.shade800,
                 size: 50,
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Success',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green, // Ubah sesuai dengan warna tema aplikasi Anda
+                  color: Colors
+                      .green, // Ubah sesuai dengan warna tema aplikasi Anda
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black54,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text(
+                child: const Text(
                   'OK',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.green, // Ubah sesuai dengan warna tema aplikasi Anda
+                    color: Colors
+                        .green, // Ubah sesuai dengan warna tema aplikasi Anda
                   ),
                 ),
               ),
@@ -69,7 +71,7 @@ void showErrorDialog(BuildContext context, String message) {
         ),
         elevation: 16,
         child: Container(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -78,34 +80,36 @@ void showErrorDialog(BuildContext context, String message) {
                 color: Colors.red.shade800,
                 size: 50,
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Error',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red, // Ubah sesuai dengan warna tema aplikasi Anda
+                  color:
+                      Colors.red, // Ubah sesuai dengan warna tema aplikasi Anda
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black54,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text(
+                child: const Text(
                   'OK',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.red, // Ubah sesuai dengan warna tema aplikasi Anda
+                    color: Colors
+                        .red, // Ubah sesuai dengan warna tema aplikasi Anda
                   ),
                 ),
               ),
@@ -117,6 +121,65 @@ void showErrorDialog(BuildContext context, String message) {
   );
 }
 
+void showWarningDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        elevation: 16,
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(
+                Icons.warning,
+                color: Colors.orange,
+                size: 50,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Warning',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
 void showInfoDialog(BuildContext context, String title, String message) {
   showDialog(
     context: context,
@@ -127,43 +190,105 @@ void showInfoDialog(BuildContext context, String title, String message) {
         ),
         elevation: 16,
         child: Container(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(
+              const Icon(
                 Icons.info,
                 color: colors2,
                 size: 50,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: colors2, // Ubah sesuai dengan warna tema aplikasi Anda
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color:
+                        colors2, // Ubah sesuai dengan warna tema aplikasi Anda
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void showNoInternetDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        elevation: 16,
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(
+                Icons.wifi_off,
+                color: Colors.redAccent,
+                size: 50,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Check your internet connection, then try again',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors
+                      .redAccent, // Sesuaikan dengan warna tema aplikasi Anda
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Please check your internet connection and try again.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black54,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text(
+                child: const Text(
                   'OK',
                   style: TextStyle(
                     fontSize: 16,
-                    color: colors2, // Ubah sesuai dengan warna tema aplikasi Anda
+                    color: Colors
+                        .redAccent, // Sesuaikan dengan warna tema aplikasi Anda
                   ),
                 ),
               ),
@@ -186,7 +311,7 @@ Future<void> showConfirmDeleteDialog({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.warning, color: Colors.red),
             SizedBox(width: 10),
@@ -214,12 +339,9 @@ Future<void> showConfirmDeleteDialog({
             },
           ),
           ElevatedButton(
-            child: const Text(
-              "Delete",
-              style: TextStyle(color: Colors.white),
-            ),
             style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white, backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.red,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),
@@ -228,6 +350,10 @@ Future<void> showConfirmDeleteDialog({
               Navigator.of(context).pop();
               onConfirm();
             },
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       );
@@ -255,7 +381,7 @@ Future<void> showEditReplyDialog({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
@@ -272,7 +398,7 @@ Future<void> showEditReplyDialog({
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: contentController,
                 decoration: InputDecoration(
@@ -280,13 +406,13 @@ Future<void> showEditReplyDialog({
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 15.0, vertical: 15.0),
                 ),
                 maxLines: 3,
                 minLines: 1,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
@@ -294,7 +420,7 @@ Future<void> showEditReplyDialog({
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text(
+                    child: const Text(
                       'Cancel',
                       style: TextStyle(
                         fontSize: 16,
@@ -302,11 +428,11 @@ Future<void> showEditReplyDialog({
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: onUpdate,
-                    icon: Icon(Icons.update, color: Colors.white),
-                    label: Text(
+                    icon: const Icon(Icons.update, color: Colors.white),
+                    label: const Text(
                       'Update',
                       style: TextStyle(
                         fontSize: 16,
@@ -318,7 +444,7 @@ Future<void> showEditReplyDialog({
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 20.0,
                         vertical: 12.0,
                       ),
@@ -345,7 +471,7 @@ Future<void> showLogoutDialog({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.exit_to_app, color: colors2),
             SizedBox(width: 10),
@@ -373,10 +499,6 @@ Future<void> showLogoutDialog({
             },
           ),
           ElevatedButton(
-            child: const Text(
-              "Logout",
-              style: TextStyle(color: Colors.white),
-            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: colors2,
               shape: RoundedRectangleBorder(
@@ -387,8 +509,60 @@ Future<void> showLogoutDialog({
               Navigator.of(context).pop();
               onLogout();
             },
+            child: const Text(
+              "Logout",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
+      );
+    },
+  );
+}
+
+void showOfflineDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi_off, size: 50, color: Colors.red),
+              const SizedBox(height: 20),
+              const Text(
+                'Anda Offline!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Anda tidak terhubung ke internet. Mohon periksa koneksi Anda.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Tutup'),
+              ),
+            ],
+          ),
+        ),
       );
     },
   );

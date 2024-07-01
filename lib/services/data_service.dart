@@ -1,249 +1,23 @@
 import 'dart:io';
 import 'package:alumni_circle_app/dto/alumni.dart';
-import 'package:alumni_circle_app/dto/balances.dart';
 import 'package:alumni_circle_app/dto/category.dart';
-import 'package:alumni_circle_app/dto/datas.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
 import 'package:alumni_circle_app/dto/event.dart';
 import 'package:alumni_circle_app/dto/feedback.dart';
-import 'package:alumni_circle_app/dto/issues.dart';
 import 'package:alumni_circle_app/dto/list_event.dart';
 import 'package:alumni_circle_app/dto/list_vacancy.dart';
 import 'package:alumni_circle_app/dto/profile.dart';
 import 'package:alumni_circle_app/dto/question.dart';
 import 'package:alumni_circle_app/dto/reply.dart';
-import 'package:alumni_circle_app/dto/spendings.dart';
-import 'package:alumni_circle_app/dto/total.dart';
 import 'package:alumni_circle_app/dto/vacancy.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:alumni_circle_app/utils/secure_storage_util.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:alumni_circle_app/dto/news.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 
 class DataService {
-  static Future<List<News>> fetchNews() async {
-    final response = await http.get(Uri.parse(Endpoints.news));
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse = jsonDecode(response.body);
-      return jsonResponse.map((item) => News.fromJson(item)).toList();
-    } else {
-      // Handle error
-      throw Exception('Failed to load news');
-    }
-  }
-
-  static Future<List<Datas>> fetchDatas() async {
-    final response = await http.get(Uri.parse(Endpoints.datas));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return (data['datas'] as List<dynamic>)
-          .map((item) => Datas.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Failed to load datas');
-    }
-  }
-
-  // Delete data to endpoint datas
-  static Future<void> deleteDatas(int id) async {
-    final response = await http.delete(
-      Uri.parse('${Endpoints.datas}/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-    );
-    if (response.statusCode == 200) {
-      return;
-    } else {
-      // Handle error
-      throw Exception('Failed to delete news : ${response.statusCode}');
-    }
-  }
-
-  // post data to endpoint news
-  static Future<News> createNews(String title, String body) async {
-    final response = await http.post(
-      Uri.parse(Endpoints.news),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'title': title,
-        'body': body,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      // Check for creation success (201 Created)
-      final jsonResponse = jsonDecode(response.body);
-      return News.fromJson(jsonResponse);
-    } else {
-      // Handle error
-      throw Exception('Failed to create post: ${response.statusCode}');
-    }
-  }
-
-  // !Update Datas
-  static Future<void> updateDatas(String name, File imageFile, int id) async {
-    if (imageFile == null) {
-      return; // Handle case where no image is selected
-    }
-
-    var request =
-        http.MultipartRequest('POST', Uri.parse('${Endpoints.datas}/$id'));
-    request.fields['name'] = name; // Add other data fields
-
-    var multipartFile = await http.MultipartFile.fromPath(
-      'image',
-      imageFile.path,
-    );
-    request.files.add(multipartFile);
-
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      // Check for success response (200 OK)
-      print('Data and image updated successfully!');
-    } else {
-      // Handle error
-      throw Exception('Error updating data: ${response.statusCode}');
-    }
-  }
-
-  // Skema Update
-  static Future<void> updateNews(String id, String title, String body) async {
-    final response = await http.put(
-      Uri.parse('${Endpoints.news}/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'title': title,
-        'body': body,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update news: ${response.statusCode}');
-    }
-  }
-
-  // Skema Delete
-  static Future<void> deleteNews(String id) async {
-    final response = await http.delete(
-      Uri.parse('${Endpoints.news}/$id'), // Append id to the endpoint URL
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-    );
-    if (response.statusCode == 200) {
-      // Check for successful deletion (204 No Content)
-      return;
-    } else {
-      // Handle error
-      throw Exception('Failed to delete news: ${response.statusCode}');
-    }
-  }
-
-  // !create Datas
-  static Future<Datas> createDatas(String name, File imageFile) async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse(Endpoints.datas),
-    );
-
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'image',
-        imageFile.path,
-      ),
-    );
-
-    request.fields['name'] = name;
-
-    final response = await http.Response.fromStream(await request.send());
-
-    if (response.statusCode == 201) {
-      // Check for creation success (201 Created)
-      final jsonResponse = jsonDecode(response.body);
-      return Datas.fromJson(jsonResponse);
-    } else {
-      // Handle error
-      throw Exception('Failed to create datas: ${response.statusCode}');
-    }
-  }
-
-  //! untuk UTS
-  // ? GET
-  static Future<List<Issues>> fetchIssues() async {
-    final response = await http.get(Uri.parse(Endpoints.issues));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return (data['datas'] as List<dynamic>)
-          .map((item) => Issues.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Failed to load datas');
-    }
-  }
-
-  // ? Delete
-  static Future<void> deleteIssues(int id) async {
-    final response = await http.delete(
-      Uri.parse('${Endpoints.issues}/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-    );
-    if (response.statusCode == 200) {
-      return;
-    } else {
-      // Handle error
-      throw Exception('Failed to delete news : ${response.statusCode}');
-    }
-  }
-
-  // ? Praktikum Cubit
-
-  // ! Get API Balance
-  static Future<List<Balances>> fetchBalances() async {
-    final response = await http.get(Uri.parse(Endpoints.balance));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return (data['datas'] as List<dynamic>)
-          .map((item) => Balances.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Failed to load datas');
-    }
-  }
-
-  // ! Get API Spending
-  static Future<List<Spendings>> fetchSpendings() async {
-    final response = await http.get(Uri.parse(Endpoints.spending));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return (data['datas'] as List<dynamic>)
-          .map((item) => Spendings.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Failed to load datas');
-    }
-  }
-
-  // ! Post Spending
-  static Future<http.Response> sendSpendingData(int spending) async {
-    final url = Uri.parse(Endpoints.spending);
-    final data = {'spending': spending};
-
-    final response = await http.post(url,
-        headers: {'Content-Type': 'application/json'}, body: jsonEncode(data));
-
-    return response;
-  }
-
   // ! Post Login
   // static Future<http.Response> sendLoginData(
   //     String email, String password) async {
@@ -262,7 +36,7 @@ class DataService {
 // ? Login
   static Future<http.Response> sendLoginData(
       String username, String password) async {
-    final url = Uri.parse(Endpoints.login);
+    final url = Uri.parse(Endpoints.login.toString());
     final data = {'username': username, 'password': password};
 
     final response = await http.post(
@@ -292,7 +66,7 @@ class DataService {
   // }
 
   static Future<http.Response> logoutData() async {
-    final url = Uri.parse(Endpoints.logout);
+    final url = Uri.parse(Endpoints.logout.toString());
     final String? accessToken =
         await SecureStorageUtil.storage.read(key: tokenStoreName);
     debugPrint("Logout with $accessToken");
@@ -310,7 +84,7 @@ class DataService {
   // ? Register
   static Future<http.Response> sendRegister(
       String email, String username, String password) async {
-    final url = Uri.parse(Endpoints.register);
+    final url = Uri.parse(Endpoints.register.toString());
     final data = {'email': email, 'username': username, 'password': password};
     final response = await http.post(
       url,
@@ -320,13 +94,21 @@ class DataService {
   }
 
   // ? Modul Alumni
-  static Future<List<Alumni>> fetchAlumniAll(int page, String search) async {
+  static Future<List<Alumni>> fetchAlumniAll(
+      int page, String search, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri = Uri.parse('${Endpoints.alumni}/read').replace(queryParameters: {
       'search': search,
       'page': page.toString(),
     });
 
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -337,37 +119,78 @@ class DataService {
     }
   }
 
-  static Future<List<Alumni>> fetchAlumni(int idAlumni) async {
-    final response =
-        await http.get(Uri.parse('${Endpoints.alumni}/read/$idAlumni'));
+  static Future<List<Alumni>> fetchAlumni(
+      int idAlumni, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+      if (accessToken.isEmpty) {
+        throw Exception('Access token is missing');
+      }
+    }
+
+    final idAlumniString =
+        await SecureStorageUtil.storage.read(key: 'idAlumni');
+
+    // Cek apakah idAlumniString bukan null dan konversi ke int
+    if (idAlumniString != null) {
+      final parsedIdAlumni = int.tryParse(idAlumniString);
+      if (parsedIdAlumni != null) {
+        idAlumni = parsedIdAlumni;
+      } else {
+        debugPrint('Error: idAlumniString is not a valid integer');
+      }
+    } else {
+      debugPrint('Error: idAlumniString is null');
+    }
+
+    final response = await http.get(
+      Uri.parse('${Endpoints.alumni}/read/$idAlumni'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+      if (data == null || data['datas'] == null) {
+        throw Exception('Invalid data format');
+      }
       final alumniData = data['datas'];
       final alumni = Alumni.fromJson(alumniData as Map<String, dynamic>);
       return [alumni];
     } else {
-      throw Exception(
-          'Failed to load datas'); // Menampilkan pesan error dari respons API
+      final errorData = jsonDecode(response.body) as Map<String, dynamic>?;
+      final errorMessage = errorData?['message'] ?? 'Failed to load data';
+      throw Exception(errorMessage);
     }
   }
 
   static Future<http.Response> updateAlumni(
       int idAlumni,
       String name,
+      String username,
       String gender,
       String address,
       String email,
       String graduateDate,
       String batch,
       String jobStatus,
-      File? imageFile) async {
+      File? imageFile,
+      String accessToken) async {
     try {
       var request = http.MultipartRequest(
         'PUT',
         Uri.parse('${Endpoints.alumni}/update/$idAlumni'),
       );
 
+      if (accessToken.isEmpty) {
+        accessToken =
+            (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+      }
+
+      request.headers.addAll({'Authorization': 'Bearer $accessToken'});
+
       request.fields['nama_alumni'] = name;
+      request.fields['username'] = username;
       request.fields['jenis_kelamin'] = gender;
       request.fields['alamat'] = address;
       request.fields['email'] = email;
@@ -391,19 +214,35 @@ class DataService {
     }
   }
 
-  static Future<http.Response> deleteAlumni(int idAlumni) async {
+  static Future<http.Response> deleteAlumni(
+      int idAlumni, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.alumni}/delete/$idAlumni');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
   }
 
   // ? Modul Event
-  static Future<List<Events>> fetchEvents(int page, String search) async {
+  static Future<List<Events>> fetchEvents(
+      int page, String search, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri = Uri.parse('${Endpoints.event}/read').replace(queryParameters: {
       'search': search,
       'page': page.toString(),
     });
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -414,9 +253,17 @@ class DataService {
     }
   }
 
-  static Future<List<Events>> fetchEventCategory(int idCategory) async {
+  static Future<List<Events>> fetchEventCategory(
+      int idCategory, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri = Uri.parse('${Endpoints.event}/read_cate/$idCategory');
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -435,13 +282,20 @@ class DataService {
       String eventDescription,
       File? imageFile,
       String latitude,
-      String longitude) async {
+      String longitude,
+      String accessToken) async {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse(
-            '${Endpoints.event}/create'), // Ganti dengan URL endpoint Anda
+        Uri.parse('${Endpoints.event}/create'),
       );
+
+      if (accessToken.isEmpty) {
+        accessToken =
+            (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+      }
+
+      request.headers.addAll({'Authorization': 'Bearer $accessToken'});
 
       request.fields['id_kategori'] = idCategory.toString();
       request.fields['nama_event'] = eventName;
@@ -476,12 +330,20 @@ class DataService {
       String eventDescription,
       File? imageFile,
       String latitude,
-      String longitude) async {
+      String longitude,
+      String accessToken) async {
     try {
       var request = http.MultipartRequest(
         'PUT',
         Uri.parse('${Endpoints.event}/update/$idEvent'),
       );
+
+      if (accessToken.isEmpty) {
+        accessToken =
+            (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+      }
+
+      request.headers.addAll({'Authorization': 'Bearer $accessToken'});
 
       request.fields['id_kategori'] = idCategory.toString();
       request.fields['nama_event'] = eventName;
@@ -507,20 +369,36 @@ class DataService {
     }
   }
 
-  static Future<http.Response> deleteEvent(int idEvent) async {
+  static Future<http.Response> deleteEvent(
+      int idEvent, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.event}/delete/$idEvent');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
   }
 
   // ? Modul Vacancy
-  static Future<List<Vacancies>> fetchVacancies(int page, String search) async {
+  static Future<List<Vacancies>> fetchVacancies(
+      int page, String search, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri =
         Uri.parse('${Endpoints.vacancy}/read').replace(queryParameters: {
       'search': search,
       'page': page.toString(),
     });
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -531,14 +409,21 @@ class DataService {
     }
   }
 
-  static Future<http.Response> sendVacancy(
-      String vacancyName, String vacancyDescription, File? imageFile) async {
+  static Future<http.Response> sendVacancy(String vacancyName,
+      String vacancyDescription, File? imageFile, String accessToken) async {
     try {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
             '${Endpoints.vacancy}/create'), // Ganti dengan URL endpoint Anda
       );
+
+      if (accessToken.isEmpty) {
+        accessToken =
+            (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+      }
+
+      request.headers.addAll({'Authorization': 'Bearer $accessToken'});
 
       request.fields['nama_vacancy'] = vacancyName;
       request.fields['deskripsi'] = vacancyDescription;
@@ -560,12 +445,19 @@ class DataService {
   }
 
   static Future<http.Response> updateVacancy(int idVacancy, String vacancyName,
-      String vacancyDescription, File? imageFile) async {
+      String vacancyDescription, File? imageFile, String accessToken) async {
     try {
       var request = http.MultipartRequest(
         'PUT',
         Uri.parse('${Endpoints.vacancy}/update/$idVacancy'),
       );
+
+      if (accessToken.isEmpty) {
+        accessToken =
+            (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+      }
+
+      request.headers.addAll({'Authorization': 'Bearer $accessToken'});
 
       request.fields['nama_vacancy'] = vacancyName;
       request.fields['deskripsi'] = vacancyDescription;
@@ -586,10 +478,31 @@ class DataService {
     }
   }
 
-  static Future<http.Response> deleteVacancy(int idVacancy) async {
+  static Future<http.Response> deleteVacancy(
+      int idVacancy, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.vacancy}/delete/$idVacancy');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
+  }
+
+  static Future<bool> checkVerifyToken() async {
+    final url = Uri.parse(Endpoints.checkToken.toString());
+    final accessToken =
+        await SecureStorageUtil.storage.read(key: tokenStoreName);
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    // Check status code for successful response (200)
+    return response.statusCode == 200;
   }
 
   // ? Modul Profile
@@ -597,7 +510,7 @@ class DataService {
     accessToken ??= await SecureStorageUtil.storage.read(key: tokenStoreName);
 
     final response = await http.get(
-      Uri.parse(Endpoints.profile),
+      Uri.parse(Endpoints.profile.toString()),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
 
@@ -624,9 +537,16 @@ class DataService {
   }
 
   // ? Modul List Event
-  static Future<List<ListEvents>> fetchListEvent(int idALumni) async {
-    final response =
-        await http.get(Uri.parse('${Endpoints.listEvent}/read/$idALumni'));
+  static Future<List<ListEvents>> fetchListEvent(
+      int idALumni, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
+    final response = await http.get(
+      Uri.parse('${Endpoints.listEvent}/read/$idALumni'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -637,31 +557,54 @@ class DataService {
     }
   }
 
-  static Future<http.Response> sendListEvent(int idAlumni, int idEvent) async {
+  static Future<http.Response> sendListEvent(
+      int idAlumni, int idEvent, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.listEvent}/create');
     final data = {
-      'id_alumni': idAlumni.toString(),
+      'id_alumni': idAlumni == 0
+          ? (await SecureStorageUtil.storage.read(key: 'idAlumni'))!
+          : idAlumni.toString(),
       'id_event': idEvent.toString()
     };
 
     final response = await http.post(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
 
     return response;
   }
 
-  static Future<http.Response> deleteListEvent(int idListEvent) async {
+  static Future<http.Response> deleteListEvent(
+      int idListEvent, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.listEvent}/delete/$idListEvent');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
   }
 
   // ? Modul List Vacancy
-  static Future<List<ListVacancy>> fetchListVacancy(int idALumni) async {
-    final response =
-        await http.get(Uri.parse('${Endpoints.listVacancy}/read/$idALumni'));
+  static Future<List<ListVacancy>> fetchListVacancy(
+      int idALumni, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
+    final response = await http.get(
+      Uri.parse('${Endpoints.listVacancy}/read/$idALumni'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -673,7 +616,11 @@ class DataService {
   }
 
   static Future<http.Response> sendListVacancy(
-      int idAlumni, int idVacancy) async {
+      int idAlumni, int idVacancy, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.listVacancy}/create');
     final data = {
       'id_alumni': idAlumni.toString(),
@@ -682,27 +629,43 @@ class DataService {
 
     final response = await http.post(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
 
     return response;
   }
 
-  static Future<http.Response> deleteListVacancy(int idListVacancy) async {
+  static Future<http.Response> deleteListVacancy(
+      int idListVacancy, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.listVacancy}/delete/$idListVacancy');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
   }
 
   // ? Diskusi
-  static Future<List<Diskusi>> fetchDiskusi(int page, String search) async {
+  static Future<List<Diskusi>> fetchDiskusi(
+      int page, String search, String? accessToken) async {
+    if (accessToken!.isEmpty) {
+      accessToken = await SecureStorageUtil.storage.read(key: tokenStoreName);
+    }
     final uri =
         Uri.parse('${Endpoints.diskusi}/read').replace(queryParameters: {
       'search': search,
       'page': page.toString(),
     });
 
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -715,7 +678,11 @@ class DataService {
   }
 
   static Future<http.Response> sendDiskusi(
-      int idAlumni, String subject, String content) async {
+      int idAlumni, String subject, String content, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.diskusi}/create');
     final data = {
       'id_alumni': idAlumni.toString(),
@@ -725,33 +692,55 @@ class DataService {
 
     final response = await http.post(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
     return response;
   }
 
   static Future<http.Response> updateDiskusi(
-      int idDiskusi, String subject, String content) async {
+      int idDiskusi, String subject, String content, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.diskusi}/update/$idDiskusi');
     final data = {'subjek_diskusi': subject, 'isi_diskusi': content};
 
     final response = await http.put(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
     return response;
   }
 
-  static Future<http.Response> deleteDiskusi(int idDiskusi) async {
+  static Future<http.Response> deleteDiskusi(
+      int idDiskusi, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.diskusi}/delete/$idDiskusi');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
   }
 
   // ?Reply
-  static Future<List<Replies>> fetchReply(int idDiskusi) async {
-    final response =
-        await http.get(Uri.parse('${Endpoints.reply}/read/$idDiskusi'));
+  static Future<List<Replies>> fetchReply(
+      int idDiskusi, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
+
+    final response = await http.get(
+      Uri.parse('${Endpoints.reply}/read/$idDiskusi'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -762,21 +751,32 @@ class DataService {
     }
   }
 
-  static Future<List<Total>> fetchTotalReply(int idDiskusi) async {
-    final response =
-        await http.get(Uri.parse('${Endpoints.reply}/total/$idDiskusi'));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return (data['datas'] as List<dynamic>)
-          .map((item) => Total.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Failed to load datas');
-    }
-  }
+  // static Future<List<Total>> fetchTotalReply(
+  //     int idDiskusi, String accessToken) async {
+  //   if (accessToken.isEmpty) {
+  //     accessToken =
+  //         (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+  //   }
+  //   final response = await http.get(
+  //     Uri.parse('${Endpoints.reply}/total/$idDiskusi'),
+  //     headers: {'Authorization': 'Bearer $accessToken'},
+  //   );
+  //   if (response.statusCode == 200) {
+  //     final data = jsonDecode(response.body) as Map<String, dynamic>;
+  //     return (data['datas'] as List<dynamic>)
+  //         .map((item) => Total.fromJson(item as Map<String, dynamic>))
+  //         .toList();
+  //   } else {
+  //     throw Exception('Failed to load datas');
+  //   }
+  // }
 
   static Future<http.Response> sendReplies(
-      int idAlumni, int idDiskusi, String isiReply) async {
+      int idAlumni, int idDiskusi, String isiReply, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.reply}/create');
     final data = {
       'id_alumni': idAlumni.toString(),
@@ -786,6 +786,7 @@ class DataService {
 
     final response = await http.post(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
 
@@ -797,42 +798,69 @@ class DataService {
     return response;
   }
 
-  static Future<http.Response> updateReply(int idReply, String content) async {
+  static Future<http.Response> updateReply(
+      int idReply, String content, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.reply}/update/$idReply');
     final data = {'isi_reply': content};
 
     final response = await http.put(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
     return response;
   }
 
-  static Future<http.Response> deleteReply(int idReply) async {
+  static Future<http.Response> deleteReply(
+      int idReply, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.reply}/delete/$idReply');
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     return response;
   }
 
   // ? Question
   static Future<http.Response> sendQuestion(
-      int idAlumni, String question) async {
+      int idAlumni, String question, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.question}/create');
     final data = {'id_alumni': idAlumni.toString(), 'isi_pertanyaan': question};
     final response = await http.post(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
     return response;
   }
 
-  static Future<List<Question>> fetchQuestion(int page, String search) async {
+  static Future<List<Question>> fetchQuestion(
+      int page, String search, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri =
         Uri.parse('${Endpoints.question}/read').replace(queryParameters: {
       'search': search,
       'page': page.toString(),
     });
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -845,23 +873,36 @@ class DataService {
 
   // ? Feedback
   static Future<http.Response> sendFeedback(
-      int idAlumni, String feedback) async {
+      int idAlumni, String feedback, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final url = Uri.parse('${Endpoints.feedback}/create');
     final data = {'id_alumni': idAlumni.toString(), 'isi_feedback': feedback};
     final response = await http.post(
       url,
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: data,
     );
     return response;
   }
 
-  static Future<List<FeedBacks>> fetchFeedback(int page, String search) async {
+  static Future<List<FeedBacks>> fetchFeedback(
+      int page, String search, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri =
         Uri.parse('${Endpoints.feedback}/read').replace(queryParameters: {
       'search': search,
       'page': page.toString(),
     });
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -873,9 +914,16 @@ class DataService {
   }
 
   // ? Modul Category
-  static Future<List<Categories>> fetchCategory() async {
+  static Future<List<Categories>> fetchCategory(String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
     final uri = Uri.parse('${Endpoints.category}/read');
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return (data['datas'] as List<dynamic>)
@@ -889,6 +937,13 @@ class DataService {
   // ? Notification
   static Future<http.Response> sendNotification(String title, String body,
       String fcmToken, String auxData, String accessToken) async {
+    if (accessToken.isEmpty) {
+      accessToken =
+          (await SecureStorageUtil.storage.read(key: tokenStoreName))!;
+    }
+    if (fcmToken.isEmpty) {
+      fcmToken = (await SecureStorageUtil.storage.read(key: "device_token"))!;
+    }
     final url = Uri.parse('${Endpoints.notification}/send');
     final data = {
       'title': title,
@@ -900,6 +955,33 @@ class DataService {
     final response = await http.post(url,
         headers: {'Authorization': 'Bearer $accessToken'}, body: data);
 
+    return response;
+  }
+
+  // ? forgot_password
+  static Future<http.Response> sendForgotPassword(
+      String username, String email) async {
+    final url = Uri.parse(Endpoints.forgotPassword);
+    final data = {'username': username, 'email': email};
+    final response = await http.post(url, body: data);
+    return response;
+  }
+
+  // ? forgot_password
+  static Future<http.Response> sendVerification(
+      String token) async {
+    final url = Uri.parse(Endpoints.verification);
+    final data = {'token': token};
+    final response = await http.post(url, body: data);
+    return response;
+  }
+
+  // ? forgot_password
+  static Future<http.Response> sendChangePassword(
+      String username, String password) async {
+    final url = Uri.parse(Endpoints.changePassword);
+    final data = {'username': username, 'password': password};
+    final response = await http.post(url, body: data);
     return response;
   }
 }

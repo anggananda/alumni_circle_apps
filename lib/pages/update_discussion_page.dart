@@ -1,3 +1,4 @@
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/diskusi/cubit/diskusi_cubit.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
@@ -38,11 +39,15 @@ class _UpdateDiscussionPageState extends State<UpdateDiscussionPage> {
     final subject = _subjectController.text;
     final content = _contentController.text;
 
-    debugPrint(
-        'Submitting discussion: Subject - $subject, Content - $content, idAlumni');
+    if(subject.isEmpty || content.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all the data!')));
+      return;
+    }
 
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final update = context.read<DiskusiCubit>(); // Gunakan DiskusiCubit
-    update.updateDiskusi(widget.diskusi.idDiskusi, subject, content, widget.page!); // Panggil method sendDiskusi
+    update.updateDiskusi(widget.diskusi.idDiskusi, subject, content, widget.page!, accessToken!); // Panggil method sendDiskusi
     
     Navigator.pop(context);
     if (update.state.errorMessage == '') {
@@ -84,7 +89,7 @@ class _UpdateDiscussionPageState extends State<UpdateDiscussionPage> {
               color: Colors.black.withOpacity(0.1),
               spreadRadius: 2,
               blurRadius: 5,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -92,10 +97,10 @@ class _UpdateDiscussionPageState extends State<UpdateDiscussionPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextField(
             controller: _subjectController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'Enter the discussion subject',
               border: InputBorder.none,
-              hintStyle: const TextStyle(color: secondaryFontColor),
+              hintStyle: TextStyle(color: secondaryFontColor),
             ),
           ),
         ),
@@ -119,7 +124,7 @@ class _UpdateDiscussionPageState extends State<UpdateDiscussionPage> {
               color: Colors.black.withOpacity(0.1),
               spreadRadius: 2,
               blurRadius: 5,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -127,10 +132,10 @@ class _UpdateDiscussionPageState extends State<UpdateDiscussionPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextFormField(
             controller: _contentController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'Enter the discussion content',
               border: InputBorder.none,
-              hintStyle: const TextStyle(color: secondaryFontColor),
+              hintStyle: TextStyle(color: secondaryFontColor),
             ),
             maxLines: 4,
           ),
@@ -144,11 +149,11 @@ class _UpdateDiscussionPageState extends State<UpdateDiscussionPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            minimumSize: Size(double.infinity, 48),
+            minimumSize: const Size(double.infinity, 48),
             backgroundColor: colors2,
             elevation: 5, // Tambahkan elevasi untuk memberi efek shadow pada tombol
           ),
-          child: Text(
+          child: const Text(
             'Post',
             style: TextStyle(
               fontWeight: FontWeight.bold,

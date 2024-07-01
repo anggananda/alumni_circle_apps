@@ -4,7 +4,7 @@ class BioText extends StatelessWidget {
   final String label;
   final String value;
 
-  const BioText({
+  const BioText({super.key, 
     required this.label,
     required this.value,
   });
@@ -18,13 +18,13 @@ class BioText extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14.0,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          SizedBox(width: 10), // Adding space between label and value
+          const SizedBox(width: 10), // Adding space between label and value
           Expanded(
             child: Text(
               value,

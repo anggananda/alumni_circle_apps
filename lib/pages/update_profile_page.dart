@@ -1,14 +1,16 @@
 import 'dart:io';
 import 'package:alumni_circle_app/cubit/alumni/cubit/alumni_cubit.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/dto/alumni.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/services/sync_service.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:alumni_circle_app/utils/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class UpdateProfilePage extends StatefulWidget {
   final Alumni alumni;
@@ -19,72 +21,84 @@ class UpdateProfilePage extends StatefulWidget {
 }
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
-  late TextEditingController _addressController;
-  late TextEditingController _jobStatusController;
+  late TextEditingController _nameController = TextEditingController();
+  late TextEditingController _usernameController = TextEditingController();
+  late TextEditingController _emailController = TextEditingController();
+  late TextEditingController _addressController = TextEditingController();
+  late TextEditingController _jobStatusController = TextEditingController();
+  late TextEditingController _dateController = TextEditingController();
   String _gender = '';
   // late String _graduateDate;
   int _selectedBatch = 18;
-  late DateTime _selectedDate;
+  DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    if (widget.alumni != null) {
-      _nameController =
-          TextEditingController(text: widget.alumni.namaALumni ?? '');
-      _emailController = TextEditingController(text: widget.alumni.email ?? '');
-      _addressController =
-          TextEditingController(text: widget.alumni.alamat ?? '');
-      _jobStatusController =
-          TextEditingController(text: widget.alumni.statusPekerjaan ?? '');
-      _gender = widget.alumni.jenisKelamin ?? '';
-      _selectedDate = DateTime.now();
-
-      // _graduateDate = formatDateString(widget.alumni.tanggalLulus!);
-
-      _selectedBatch = widget.alumni.angkatan != null
-          ? int.parse(widget.alumni.angkatan!)
-          : 18;
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
+    _nameController =
+        TextEditingController(text: widget.alumni.namaALumni ?? '');
+    _usernameController = TextEditingController(text: widget.alumni.username);
+    _emailController = TextEditingController(text: widget.alumni.email ?? '');
+    _addressController =
+        TextEditingController(text: widget.alumni.alamat ?? '');
+    _jobStatusController =
+        TextEditingController(text: widget.alumni.statusPekerjaan ?? '');
+    _gender = widget.alumni.jenisKelamin ?? '';
+    _dateController = TextEditingController(
+        text: formatDateString(widget.alumni.tanggalLulus!));
+    _selectedBatch = widget.alumni.angkatan != null
+        ? int.parse(widget.alumni.angkatan!)
+        : 18;
   }
 
   File? _image;
-  final ImagePicker _picker = ImagePicker();
+  // final ImagePicker _picker = ImagePicker();
 
-  void _updateProfile() {
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _dateController.dispose();
+    _usernameController.dispose();
+    _addressController.dispose();
+    _emailController.dispose();
+    _jobStatusController.dispose();
+    super.dispose();
+  }
+
+  void _updateProfile() async {
     String name = _nameController.text;
+    String username = _usernameController.text;
     String gender = _gender;
     String address = _addressController.text;
     String email = _emailController.text;
-    String graduateDate = _selectedDate.toString();
+    String graduateDate = _dateController.text;  
     String batch = _selectedBatch.toString();
     String jobStatus = _jobStatusController.text;
 
+    if (name.isEmpty ||
+        username.isEmpty ||
+        gender.isEmpty ||
+        address.isEmpty ||
+        graduateDate.isEmpty ||
+        email.isEmpty ||
+        batch.isEmpty ||
+        jobStatus.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("fill all of the data!")));
+      return;
+    }
+
     debugPrint(graduateDate);
 
+
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final cubit = context.read<ProfileCubit>();
     final currentState = cubit.state;
 
     final send = context.read<AlumniCubit>(); // Gunakan DiskusiCubit
-    send.updateAlumni(currentState.idAlumni, name, gender, address, email,
-        graduateDate, batch, jobStatus, _image);
-
+    send.updateAlumni(currentState.idAlumni, name, username, gender, address, email,
+        graduateDate, batch, jobStatus, _image, accessToken!);
+    _updateSqlite(currentState.idAlumni, accessToken);
     Navigator.pop(context);
     if (send.state.errorMessage == '') {
       showSuccessDialog(context, 'Successfully Update Profile');
@@ -93,19 +107,24 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     }
   }
 
+  void _updateSqlite(int idAlumni, String accessToken) async {
+    final syncService = SyncService();
+    await syncService.syncAlumni(idAlumni, accessToken);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
-        title: Text('Update Profile'),
+        title: const Text('Update Profile', style: TextStyle(fontWeight: FontWeight.bold),),
         centerTitle: true,
       ),
       backgroundColor: primaryColor,
       body: SingleChildScrollView(
           child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: const BoxDecoration(
                 color: secondaryColor,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20),
@@ -156,7 +175,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                               decoration: BoxDecoration(
                                 color: addButtonColor,
                                 shape: BoxShape.circle,
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Colors.black26,
                                     blurRadius: 4.0,
@@ -164,8 +183,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                                   ),
                                 ],
                               ),
-                              padding: EdgeInsets.all(8.0),
-                              child: Icon(
+                              padding: const EdgeInsets.all(8.0),
+                              child: const Icon(
                                 Icons.camera_alt_rounded,
                                 color: Colors.white,
                               ),
@@ -194,8 +213,31 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Username',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey[400]!),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -217,8 +259,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -240,8 +282,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -271,11 +313,11 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                     fillColor: Colors.transparent,
                     selectedColor: Colors.green[800],
                     color: Colors.grey[600],
-                    constraints: BoxConstraints(minHeight: 50.0),
+                    constraints: const BoxConstraints(minHeight: 50.0),
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Text(
                           'Male',
                           style: TextStyle(
                             fontSize: 18,
@@ -284,8 +326,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Text(
                           'Female',
                           style: TextStyle(
                             fontSize: 18,
@@ -295,46 +337,53 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Graduate Date',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
+                  Text(
+                    'Graduate Date',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _dateController,
+                    decoration: InputDecoration(
+                      hintText: "Date",
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey[400]!),
                       ),
-                      SizedBox(height: 8),
-                      InkWell(
-                        onTap: () {
-                          _selectDate(context);
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      suffixIcon: GestureDetector(
+                        onTap: () async {
+                          // Memunculkan date picker saat input ditekan
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              _selectedDate = pickedDate;
+                              _dateController.text =
+                                  DateFormat('yyyy-MM-dd').format(pickedDate);
+                            });
+                          }
                         },
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 16, horizontal: 12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              Icon(Icons.calendar_today),
-                            ],
-                          ),
+                        child: const Icon(
+                          Icons.calendar_today,
+                          color: Colors.grey,
                         ),
                       ),
-                    ],
+                    ),
+                    readOnly: true,
                   ),
                   const SizedBox(height: 8),
                   // Add your DatePicker widget here
@@ -356,8 +405,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                     value: _selectedBatch,
                     items: List.generate(7, (index) => 18 + index)
@@ -392,8 +441,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -406,10 +455,10 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        minimumSize: Size(double.infinity, 48),
+                        minimumSize: const Size(double.infinity, 48),
                         backgroundColor: addButtonColor,
                       ),
-                      child: Text(
+                      child: const Text(
                         'Update Profile',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,

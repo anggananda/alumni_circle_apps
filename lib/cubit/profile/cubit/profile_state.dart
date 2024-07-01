@@ -9,5 +9,5 @@ class ProfileState {
 }
 
 final class ProfileInitialState extends ProfileState {
-  const ProfileInitialState() : super(roles: 'umum', idAlumni: 0);
+  const ProfileInitialState() : super(roles: '', idAlumni: 0);
 }

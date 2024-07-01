@@ -1,12 +1,7 @@
-import 'dart:io';
-import 'package:alumni_circle_app/CounterScreen/counter_screen.dart';
-import 'package:alumni_circle_app/WelcomeScreen/welcome_screen.dart';
 import 'package:alumni_circle_app/components/aunt_wrapper.dart';
 import 'package:alumni_circle_app/cubit/alumni/cubit/alumni_cubit.dart';
 import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
-import 'package:alumni_circle_app/cubit/balance/cubit/balance_cubit.dart';
 import 'package:alumni_circle_app/cubit/category/cubit/category_cubit.dart';
-import 'package:alumni_circle_app/cubit/counter_cubit.dart';
 import 'package:alumni_circle_app/cubit/diskusi/cubit/diskusi_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/cubit/feedback/cubit/feedback_cubit.dart';
@@ -14,21 +9,16 @@ import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/question/cubit/question_cubit.dart';
 import 'package:alumni_circle_app/cubit/reply/cubit/reply_cubit.dart';
 import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
-import 'package:alumni_circle_app/pages/datas_screen.dart';
+import 'package:alumni_circle_app/endpoints/endpoints.dart';
+import 'package:alumni_circle_app/pages/change_password_page.dart';
 import 'package:alumni_circle_app/pages/feedback_page.dart';
-import 'package:alumni_circle_app/pages/post_datas.dart';
+import 'package:alumni_circle_app/pages/input_url_page.dart';
 import 'package:alumni_circle_app/pages/register/login_page.dart';
 import 'package:alumni_circle_app/pages/register/register_page.dart';
-import 'package:alumni_circle_app/pages/routes/BalanceScreen/balance_screen.dart';
-import 'package:alumni_circle_app/pages/routes/SpendingScreen/spending_screen.dart';
-import 'package:alumni_circle_app/pages/routes/customerService/customer_service_screen.dart';
-import 'package:alumni_circle_app/pages/routes/formDataCs/form_data_screen.dart';
 import 'package:alumni_circle_app/pages/user_control_page.dart';
-import 'package:alumni_circle_app/pages/vertical_pager.dart';
 import 'package:alumni_circle_app/utils/secure_storage_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:alumni_circle_app/newPost/news_post.dart';
 import 'package:alumni_circle_app/pages/aboutus.dart';
 import 'package:alumni_circle_app/pages/discussiion_page.dart';
 import 'package:alumni_circle_app/pages/event_page.dart';
@@ -40,22 +30,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alumni_circle_app/pages/list_event_page.dart';
 import 'package:alumni_circle_app/pages/list_vacancy_page.dart';
 import 'package:alumni_circle_app/pages/navigate.dart';
-import 'package:alumni_circle_app/pages/news_screen.dart';
-import 'package:alumni_circle_app/pages/post_screen.dart';
-import 'package:alumni_circle_app/pages/routes/BookScreen/book_screen.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 Future<void> main() async {
-  HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -91,10 +76,9 @@ Future<void> main() async {
   });
 
   // Get the registration token for this device
-  
+  await Endpoints.initialize();
   String? token = await messaging.getToken();
-  await SecureStorageUtil.storage
-          .write(key: "device_token", value: token);
+  await SecureStorageUtil.storage.write(key: "device_token", value: token);
   debugPrint("Registration token: $token");
   runApp(const MyApp());
 }
@@ -123,84 +107,70 @@ void _showNotification(RemoteMessage message) {
   }
 }
 
-// Future<void> main() async{
-//   HttpOverrides.global = MyHttpOverrides();
-//   runApp(const MyApp());
-// }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-  return ScreenUtilInit(
+    return ScreenUtilInit(
       designSize: const Size(375, 812),
       builder: (BuildContext context, Widget? child) {
         return MultiBlocProvider(
-          providers:[
-            BlocProvider<CounterCubit>(create: (context) => CounterCubit()),
-            BlocProvider<BalanceCubit>(create: (context) => BalanceCubit()),
-            BlocProvider<AuthCubit>(create: (context) => AuthCubit()),
-            BlocProvider<ProfileCubit>(create: (context) => ProfileCubit()),
-            BlocProvider<DiskusiCubit>(create: (context) => DiskusiCubit()),
-            BlocProvider<ReplyCubit>(create: (context) => ReplyCubit()),
-            BlocProvider<AlumniCubit>(create: (context) => AlumniCubit()),
-            BlocProvider<EventCubit>(create: (context) => EventCubit()),
-            BlocProvider<VacancyCubit>(create: (context) => VacancyCubit()),
-            BlocProvider<FeedbackCubit>(create: (context) => FeedbackCubit()),
-            BlocProvider<QuestionCubit>(create: (context) => QuestionCubit()),
-            BlocProvider<CategoryCubit>(create: (context) => CategoryCubit()),
-            ], 
-          child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: "Alumni Circle App",
-          // home: const NavigatorBarPage(),
-          theme: ThemeData(
-            scaffoldBackgroundColor: secondaryColor,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            textTheme: GoogleFonts.soraTextTheme(),
-          ),
-          navigatorObservers: [routeObserver],
-          initialRoute: '/landing_page',
-          routes: {
-            '/landing_page': (context) =>  const LandingPage(),
-            '/login': (context) =>  const LoginPage(),
-            '/signup': (context) =>  const RegisterPage(),
-            '/navigate': (context) =>  const AuthWrapper(child: NavigatorBarPage()),
-            '/discussion': (context) =>  const AuthWrapper(child:DiscussionPage() ,) ,
-            '/event': (context) =>  const AuthWrapper(child: EventPage(),) ,
-            '/jobvacancy': (context) =>  const AuthWrapper(child: JobVacancyPage(),) ,
-            '/listevent': (context) =>  const ListEventPage(),
-            '/listvacancy': (context) =>  const ListVacancyPage(),
-            '/aboutus': (context) =>  const AboutUs(),
-            '/help': (context) =>  const HelpPage(),
-            '/feedback': (context) =>  const FeedbackPage(),
-            '/newsscreen': (context) =>  const NewsScreen(),
-            '/newpost': (context) =>  const NewsPostScreen(),
-            '/post': (context) =>  const PostPage(),
-            '/book': (context) =>  const BooksScreen(),
-            '/datas': (context) =>  const DatasScreen(),
-            '/postdatas': (context) =>  const FormScreen(),
-            '/verticalPage': (context) =>  const VerticalCardPagger(),
-            '/customerService': (context) =>  const CustomerServiceScreen(),
-            '/formData': (context) =>  const FormDataScreen(),
-            '/welcome': (context) =>  const WelcomeScreen(),
-            '/counter': (context) =>  const CounterScreen(),
-            '/balance_screen': (context) =>  const AuthWrapper(child: BalanceScreen()) ,
-            '/spending_screen': (context) =>  const AuthWrapper(child: SpendingScreen()) ,
-            '/user_control': (context) =>  const AuthWrapper(child: UserControlScreen()) ,
-          },
-        ));
+            providers: [
+              BlocProvider<AuthCubit>(create: (context) => AuthCubit()),
+              BlocProvider<ProfileCubit>(create: (context) => ProfileCubit()),
+              BlocProvider<DiskusiCubit>(create: (context) => DiskusiCubit()),
+              BlocProvider<ReplyCubit>(create: (context) => ReplyCubit()),
+              BlocProvider<AlumniCubit>(create: (context) => AlumniCubit()),
+              BlocProvider<EventCubit>(create: (context) => EventCubit()),
+              BlocProvider<VacancyCubit>(create: (context) => VacancyCubit()),
+              BlocProvider<FeedbackCubit>(create: (context) => FeedbackCubit()),
+              BlocProvider<QuestionCubit>(create: (context) => QuestionCubit()),
+              BlocProvider<CategoryCubit>(create: (context) => CategoryCubit()),
+            ],
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: "Alumni Circle App",
+              theme: ThemeData(
+                scaffoldBackgroundColor: secondaryColor,
+                visualDensity: VisualDensity.adaptivePlatformDensity,
+                textTheme: GoogleFonts.soraTextTheme(),
+              ),
+              navigatorObservers: [routeObserver],
+              // home: AuthCheck(),
+              initialRoute: '/navigate',
+              // initialRoute: '/landing_page',
+              routes: {
+                '/landing_page': (context) => const LandingPage(),
+                '/login': (context) => const LoginPage(),
+                '/signup': (context) => const RegisterPage(),
+                '/change_password': (context) => const ChangePasswordPage(),
+                '/navigate': (context) =>
+                    const AuthWrapper(child: NavigatorBarPage()),
+                '/discussion': (context) => const AuthWrapper(
+                      child: DiscussionPage(),
+                    ),
+                '/event': (context) => const AuthWrapper(
+                      child: EventPage(),
+                    ),
+                '/jobvacancy': (context) => const AuthWrapper(
+                      child: JobVacancyPage(),
+                    ),
+                '/listevent': (context) => const AuthWrapper(
+                      child: ListEventPage(),
+                    ),
+                '/listvacancy': (context) =>
+                    const AuthWrapper(child: ListVacancyPage()),
+                '/aboutus': (context) => const AboutUs(),
+                '/help': (context) => const AuthWrapper(child: HelpPage()),
+                '/feedback': (context) =>
+                    const AuthWrapper(child: FeedbackPage()),
+                '/user_control': (context) =>
+                    const AuthWrapper(child: UserControlScreen()),
+                '/input_url': (context) => const InputUrlPage(),
+              },
+            ));
       },
     );
   }
 }
-
-class MyHttpOverrides extends HttpOverrides{
-  @override
-  HttpClient createHttpClient(SecurityContext? context){
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
-  }
-}
-

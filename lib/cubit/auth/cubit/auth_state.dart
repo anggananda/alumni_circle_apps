@@ -8,6 +8,6 @@ class AuthState {
   const AuthState({required this.isLoggedIn, this.accessToken, this.token});
 }
 
-final class AuthInitialState extends AuthState {
+class AuthInitialState extends AuthState {
   const AuthInitialState() : super(isLoggedIn: true, accessToken: "", token: "");
 }

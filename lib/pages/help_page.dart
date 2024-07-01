@@ -1,6 +1,7 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
 import 'package:alumni_circle_app/components/error_widget.dart';
 import 'package:alumni_circle_app/components/paggination_page.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/question/cubit/question_cubit.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
@@ -19,7 +20,7 @@ class HelpPage extends StatefulWidget {
 class _HelpPageState extends State<HelpPage> {
   final _questionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _searchQuery = '';
+  // String _searchQuery = '';
 
   late TextEditingController _searchController;
   int _currentPage = 1;
@@ -39,8 +40,9 @@ class _HelpPageState extends State<HelpPage> {
   }
 
   void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<QuestionCubit>(context)
-        .fetchQuestion(_currentPage, _searchController.text);
+        .fetchQuestion(_currentPage, _searchController.text, accessToken!);
   }
 
   void sendQuestion() async {
@@ -54,9 +56,10 @@ class _HelpPageState extends State<HelpPage> {
       return;
     }
 
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final send = context.read<QuestionCubit>();
-    send.sendQuestion(currentState.idAlumni, question,
-        _currentPage); // Panggil method sendDiskusi
+    send.sendQuestion(currentState.idAlumni, question, _currentPage,
+        accessToken!); // Panggil method sendDiskusi
     if (send.state.errorMessage == '') {
       showSuccessDialog(context, 'post success.');
       _questionController.clear();
@@ -67,7 +70,7 @@ class _HelpPageState extends State<HelpPage> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value;
+      // _searchQuery = value;
       _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
     });
     _fetchData();
@@ -75,7 +78,7 @@ class _HelpPageState extends State<HelpPage> {
 
   void _onSearchCleared() {
     setState(() {
-      _searchQuery = "";
+      // _searchQuery = "";
       _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
     });
     _fetchData();
@@ -98,14 +101,14 @@ class _HelpPageState extends State<HelpPage> {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.only(bottom: 20),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: primaryColor,
                           borderRadius: BorderRadius.only(
                             bottomLeft: Radius.circular(10),
                             bottomRight: Radius.circular(10),
                           ),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Text(
                             'Question Box Center',
                             style: TextStyle(
@@ -116,7 +119,7 @@ class _HelpPageState extends State<HelpPage> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(12),
                         child: CustomSearchBox(
                           controller: _searchController,
                           onChanged: (value) => _onSearchChanged(value),
@@ -127,22 +130,29 @@ class _HelpPageState extends State<HelpPage> {
                       BlocBuilder<QuestionCubit, QuestionState>(
                         builder: (context, state) {
                           if (state.isLoading) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           } else if (state.errorMessage.isNotEmpty) {
-                            return ErrorDisplay(
-                              message: state.errorMessage,
-                              onRetry: () {
-                                context.read<QuestionCubit>().fetchQuestion(
-                                    1, ''); // Retry fetching events
+                            return BlocBuilder<AuthCubit, AuthState>(
+                              builder: (context, state) {
+                                return ErrorDisplay(
+                                  message: "Failed to fetch discussion",
+                                  onRetry: () {
+                                    context.read<QuestionCubit>().fetchQuestion(
+                                        1,
+                                        '',
+                                        state
+                                            .accessToken!); // Retry fetching events
+                                  },
+                                );
                               },
                             );
                           } else if (state.questionList.isEmpty) {
-                            return Center(
+                            return const Center(
                                 child: Text('No discussion data available'));
                           } else {
                             return ListView.builder(
                               shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
+                              physics: const NeverScrollableScrollPhysics(),
                               itemCount: state.questionList.length,
                               itemBuilder: (context, index) {
                                 final question = state.questionList[index];
@@ -163,7 +173,7 @@ class _HelpPageState extends State<HelpPage> {
                                                     .withOpacity(0.1),
                                                 spreadRadius: 2,
                                                 blurRadius: 5,
-                                                offset: Offset(0, 3),
+                                                offset: const Offset(0, 3),
                                               ),
                                             ],
                                             borderRadius:
@@ -217,12 +227,12 @@ class _HelpPageState extends State<HelpPage> {
                                                         ),
                                                       ],
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 15,
                                                     ),
-                                                    Text(
+                                                    const Text(
                                                       'Question 💙:',
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                           color:
                                                               primaryFontColor,
                                                           fontSize: 14,
@@ -240,7 +250,7 @@ class _HelpPageState extends State<HelpPage> {
                                                       textAlign:
                                                           TextAlign.justify,
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 10,
                                                     ),
                                                     Text(
@@ -260,7 +270,7 @@ class _HelpPageState extends State<HelpPage> {
                                                             secondaryFontColor,
                                                       ),
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 10,
                                                     ),
                                                   ],
@@ -280,7 +290,7 @@ class _HelpPageState extends State<HelpPage> {
                       ),
                       Container(
                         padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                            const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -299,12 +309,12 @@ class _HelpPageState extends State<HelpPage> {
                                 });
                               },
                             ),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             Text(
                               'Page $_currentPage',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             BlocBuilder<QuestionCubit, QuestionState>(
                               builder: (context, state) {
                                 return PaginationButton(
@@ -312,10 +322,10 @@ class _HelpPageState extends State<HelpPage> {
                                   color: colors2,
                                   icon: Icons.arrow_forward,
                                   text: 'Next',
-                                  isEnabled: !state.questionList.isEmpty,
+                                  isEnabled: state.questionList.isNotEmpty,
                                   onTap: () {
                                     setState(() {
-                                      if (!state.questionList.isEmpty) {
+                                      if (state.questionList.isNotEmpty) {
                                         _currentPage++;
                                         _fetchData();
                                       }
@@ -335,15 +345,15 @@ class _HelpPageState extends State<HelpPage> {
                     child: Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(5),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: primaryColor.withOpacity(0.9),
-                        borderRadius: BorderRadius.only(
+                        borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(20),
                           bottomRight: Radius.circular(20),
                         ),
                       ),
-                      child: ListTile(
+                      child: const ListTile(
                         title: Text(
                           "Welcome to Help Center",
                           textAlign: TextAlign.center,
@@ -354,7 +364,7 @@ class _HelpPageState extends State<HelpPage> {
                           ),
                         ),
                         subtitle: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Text(
                             "How can we assist you today?",
                             style: TextStyle(
@@ -367,17 +377,17 @@ class _HelpPageState extends State<HelpPage> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Form(
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Padding(
+                                const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 10),
                                   child: Text(
                                     "Question ❤️",
@@ -402,14 +412,20 @@ class _HelpPageState extends State<HelpPage> {
                                   ),
                                   maxLines: 4,
                                 ),
-                                SizedBox(height: 30),
+                                const SizedBox(height: 30),
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     onPressed: () {
                                       sendQuestion();
                                     },
-                                    child: Padding(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: const Padding(
                                       padding:
                                           EdgeInsets.symmetric(vertical: 16),
                                       child: Text(
@@ -418,12 +434,6 @@ class _HelpPageState extends State<HelpPage> {
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             color: primaryFontColor),
-                                      ),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: primaryColor,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
                                   ),

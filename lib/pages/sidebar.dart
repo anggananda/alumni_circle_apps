@@ -3,10 +3,8 @@ import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:alumni_circle_app/utils/secure_storage_util.dart';
 import 'package:flutter/material.dart';
-// import 'package:my_app/components/asset_image_widget.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:url_launcher/url_launcher.dart';
 
 class SideBar extends StatefulWidget {
   const SideBar({super.key});
@@ -18,16 +16,21 @@ class SideBar extends StatefulWidget {
 class _SideBarState extends State<SideBar> {
   Future<void> doLogout(context) async {
     debugPrint("need logout");
-    final response = await DataService.logoutData();
-    if (response.statusCode == 200) {
-      debugPrint('Logout berhasi ${response.statusCode}');
-      await SecureStorageUtil.storage.delete(key: tokenStoreName);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logout Successfully'))
-      );
-      Navigator.pushReplacementNamed(context, "/login");
-    } else {
-      debugPrint('${response.statusCode}');
+
+    try {
+      final response = await DataService.logoutData();
+      if (response.statusCode == 200) {
+        debugPrint('Logout berhasi ${response.statusCode}');
+        await SecureStorageUtil.storage.delete(key: tokenStoreName);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Logout Successfully')));
+        Navigator.pushReplacementNamed(context, "/login");
+      } else {
+        debugPrint('${response.statusCode}');
+      }
+    } catch (error) {
+      debugPrint(error.toString());
+      showNoInternetDialog(context);
     }
   }
 
@@ -48,7 +51,10 @@ class _SideBarState extends State<SideBar> {
             child: null,
           ),
           ListTile(
-            leading: const Icon(Icons.face_unlock_sharp, color: colors2,),
+            leading: const Icon(
+              Icons.face_unlock_sharp,
+              color: colors2,
+            ),
             title: const Text(
               "About US",
               style: TextStyle(
@@ -60,8 +66,11 @@ class _SideBarState extends State<SideBar> {
             onTap: () => Navigator.pushNamed(context, "/aboutus"),
           ),
           ExpansionTile(
-            leading: Icon(Icons.headset_mic, color: colors2,),
-            title: Text(
+            leading: const Icon(
+              Icons.headset_mic,
+              color: colors2,
+            ),
+            title: const Text(
               'Support',
               style: TextStyle(
                 color: primaryFontColor,
@@ -71,15 +80,18 @@ class _SideBarState extends State<SideBar> {
             ),
             children: <Widget>[
               Padding(
-                padding: EdgeInsets.only(left: 10),
+                padding: const EdgeInsets.only(left: 10),
                 child: ListTile(
-                  leading: const Icon(Icons.help, color: colors2,),
+                  leading: const Icon(
+                    Icons.help,
+                    color: colors2,
+                  ),
                   title: BlocBuilder<ProfileCubit, ProfileState>(
                     builder: (context, state) {
                       if (state.roles == 'admin') {
-                        return Text('Question Box');
+                        return const Text('Question Box');
                       } else {
-                        return Text('Question');
+                        return const Text('Question');
                       }
                     },
                   ),
@@ -89,15 +101,18 @@ class _SideBarState extends State<SideBar> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(left: 10),
+                padding: const EdgeInsets.only(left: 10),
                 child: ListTile(
-                  leading: const Icon(Icons.feedback, color: colors2,),
+                  leading: const Icon(
+                    Icons.feedback,
+                    color: colors2,
+                  ),
                   title: BlocBuilder<ProfileCubit, ProfileState>(
                     builder: (context, state) {
                       if (state.roles == 'admin') {
-                        return Text('Feedback Hub');
+                        return const Text('Feedback Hub');
                       } else {
-                        return Text('Feedback');
+                        return const Text('Feedback');
                       }
                     },
                   ),
@@ -105,11 +120,27 @@ class _SideBarState extends State<SideBar> {
                     Navigator.pushNamed(context, '/feedback');
                   },
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.settings_input_antenna,
+                    color: colors2,
+                  ),
+                  title: const Text('Input Url'),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/input_url');
+                  },
+                ),
               )
             ],
           ),
           ListTile(
-            leading: const Icon(Icons.exit_to_app, color: colors2,),
+            leading: const Icon(
+              Icons.exit_to_app,
+              color: colors2,
+            ),
             title: const Text(
               "Logout",
               style: TextStyle(
@@ -120,13 +151,13 @@ class _SideBarState extends State<SideBar> {
             ),
             onTap: () => {
               showLogoutDialog(
-              context: context,
-              onLogout: () => doLogout(context),
-            )
+                context: context,
+                onLogout: () => doLogout(context),
+              )
             },
           ),
           const Divider(),
-          SizedBox(
+          const SizedBox(
             height: 20.0,
           ),
         ],

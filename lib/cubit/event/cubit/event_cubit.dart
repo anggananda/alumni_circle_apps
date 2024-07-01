@@ -9,10 +9,10 @@ part 'event_state.dart';
 
 class EventCubit extends Cubit<EventState> {
   EventCubit() : super(const EventState.initial());
-  void fetchEvent(int page, String search) async {
+  void fetchEvent(int page, String search, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final eventList = await DataService.fetchEvents(page, search);
+      final eventList = await DataService.fetchEvents(page, search, accessToken);
       emit(state.copyWith(
         eventList: eventList,
         isLoading: false,
@@ -26,10 +26,10 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  void fetchEventCategory(int idCategory) async {
+  void fetchEventCategory(int idCategory, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final eventList = await DataService.fetchEventCategory(idCategory);
+      final eventList = await DataService.fetchEventCategory(idCategory, accessToken);
       emit(state.copyWith(
         eventList: eventList,
         isLoading: false,
@@ -43,16 +43,16 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  void sendEvent(int idCategory, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page, String latitude, String longitude) async {
+  void sendEvent(int idCategory, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page, String latitude, String longitude, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.sendEvent(idCategory, eventName, eventDate, eventLocation, eventDescription, imageFile, latitude, longitude);
+      final response = await DataService.sendEvent(idCategory, eventName, eventDate, eventLocation, eventDescription, imageFile, latitude, longitude, accessToken);
       if (response.statusCode == 201) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchEvent(page, ''); 
+        fetchEvent(page, '', accessToken); 
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -67,16 +67,16 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  void updateEvent(int idEvent, int idCategory, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page, String latitude, String longitude) async {
+  void updateEvent(int idEvent, int idCategory, String eventName, String eventDate, String eventLocation, String eventDescription, File? imageFile, int page, String latitude, String longitude, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.updateEvent(idEvent, idCategory, eventName, eventDate, eventLocation, eventDescription, imageFile, latitude, longitude);
+      final response = await DataService.updateEvent(idEvent, idCategory, eventName, eventDate, eventLocation, eventDescription, imageFile, latitude, longitude, accessToken);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchEvent(page, ''); // Refresh the list
+        fetchEvent(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -91,16 +91,16 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  void deleteEvent(int idEvent, int page) async {
+  void deleteEvent(int idEvent, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.deleteEvent(idEvent);
+      final response = await DataService.deleteEvent(idEvent, accessToken);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchEvent(page, ''); // Refresh the list
+        fetchEvent(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,

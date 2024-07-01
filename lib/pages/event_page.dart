@@ -1,6 +1,7 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
 import 'package:alumni_circle_app/components/error_widget.dart';
 import 'package:alumni_circle_app/components/paggination_page.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/details/detail_event.dart';
@@ -23,14 +24,14 @@ class EventPage extends StatefulWidget {
 class _EventPageState extends State<EventPage> {
   late TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
-  String _searchQuery = '';
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     _searchController = TextEditingController();
     _fetchData();
   }
+
 
   @override
   void dispose() {
@@ -39,8 +40,9 @@ class _EventPageState extends State<EventPage> {
   }
 
   void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<EventCubit>(context)
-        .fetchEvent(_currentPage, _searchController.text);
+        .fetchEvent(_currentPage, _searchController.text, accessToken!);
   }
 
   void _navigateToDetail(Events event) {
@@ -74,7 +76,6 @@ class _EventPageState extends State<EventPage> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value;
       _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
     });
     _fetchData();
@@ -82,7 +83,6 @@ class _EventPageState extends State<EventPage> {
 
   void _onSearchCleared() {
     setState(() {
-      _searchQuery = "";
       _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
     });
     _fetchData();
@@ -145,13 +145,13 @@ class _EventPageState extends State<EventPage> {
                   if (state.roles == 'admin') {
                     return Row(
                       children: [
-                        SizedBox(width: 15),
+                        const SizedBox(width: 15),
                         GestureDetector(
                           onTap: () {
                             _navigateToForm();
                           },
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 20),
                             decoration: BoxDecoration(
                               color: Colors.blue,
@@ -161,11 +161,11 @@ class _EventPageState extends State<EventPage> {
                                   color: Colors.grey.withOpacity(0.5),
                                   spreadRadius: 2,
                                   blurRadius: 5,
-                                  offset: Offset(0, 3),
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.add, color: Colors.white),
@@ -208,18 +208,21 @@ class _EventPageState extends State<EventPage> {
               BlocBuilder<EventCubit, EventState>(
                 builder: (context, state) {
                   if (state.isLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (state.errorMessage.isNotEmpty) {
-                    return ErrorDisplay(
-                      message: state.errorMessage,
-                      onRetry: () {
-                        context
-                            .read<EventCubit>()
-                            .fetchEvent(1, ''); // Retry fetching events
+                    return BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, state) {
+                        return ErrorDisplay(
+                          message: "Failed to fetch Event",
+                          onRetry: () {
+                            context.read<EventCubit>().fetchEvent(1, '',
+                                state.accessToken!); // Retry fetching events
+                          },
+                        );
                       },
                     );
                   } else if (state.eventList.isEmpty) {
-                    return Center(child: Text('No discussion data available'));
+                    return const Center(child: Text('No discussion data available'));
                   } else {
                     return Column(
                       children: [
@@ -234,7 +237,7 @@ class _EventPageState extends State<EventPage> {
                               separatorBuilder:
                                   (BuildContext context, int index) {
                                 // Tambahkan jarak vertikal antara setiap item
-                                return SizedBox(height: 10);
+                                return const SizedBox(height: 10);
                               },
                               itemBuilder: (context, index) {
                                 final event = state.eventList[index];
@@ -255,7 +258,7 @@ class _EventPageState extends State<EventPage> {
                                             color: Colors.grey.withOpacity(0.5),
                                             spreadRadius: 2,
                                             blurRadius: 5,
-                                            offset: Offset(0, 3),
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
@@ -263,7 +266,7 @@ class _EventPageState extends State<EventPage> {
                                         children: [
                                           // Bagian Gambar Event
                                           Padding(
-                                            padding: EdgeInsets.all(10),
+                                            padding: const EdgeInsets.all(10),
                                             child: Container(
                                               width: 100,
                                               height: 100,
@@ -281,14 +284,14 @@ class _EventPageState extends State<EventPage> {
                                           // Detail Event
                                           Expanded(
                                             child: Padding(
-                                              padding: EdgeInsets.all(10),
+                                              padding: const EdgeInsets.all(10),
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     event.namaEvent,
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                       fontSize: 16.0,
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -297,13 +300,13 @@ class _EventPageState extends State<EventPage> {
                                                         TextOverflow.ellipsis,
                                                     maxLines: 1,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  const SizedBox(height: 5),
                                                   Flexible(
                                                     child: Text(
                                                       event.deskripsi,
                                                       overflow:
                                                           TextOverflow.fade,
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                           fontSize: 10),
                                                       textAlign:
                                                           TextAlign.start,
@@ -319,7 +322,7 @@ class _EventPageState extends State<EventPage> {
                                             builder: (context, state) {
                                               if (state.roles == 'admin') {
                                                 return Container(
-                                                  padding: EdgeInsets.only(
+                                                  padding: const EdgeInsets.only(
                                                       right: 10),
                                                   child: ElevatedButton.icon(
                                                     icon: const Icon(
@@ -338,7 +341,11 @@ class _EventPageState extends State<EventPage> {
                                                     ),
                                                     style: ElevatedButton
                                                         .styleFrom(
-                                                      foregroundColor: Colors.greenAccent, backgroundColor: Colors.green, padding: const EdgeInsets
+                                                      foregroundColor:
+                                                          Colors.greenAccent,
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                      padding: const EdgeInsets
                                                           .symmetric(
                                                           vertical: 12,
                                                           horizontal: 16),
@@ -369,14 +376,14 @@ class _EventPageState extends State<EventPage> {
                                 );
                               },
                             )),
-                        SizedBox(height: 15), // Tambahkan jarak setelah daftar
+                        const SizedBox(height: 15), // Tambahkan jarak setelah daftar
                       ],
                     );
                   }
                 },
               ),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -395,12 +402,12 @@ class _EventPageState extends State<EventPage> {
                         });
                       },
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     Text(
                       'Page $_currentPage',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     BlocBuilder<EventCubit, EventState>(
                       builder: (context, state) {
                         return PaginationButton(
@@ -408,10 +415,10 @@ class _EventPageState extends State<EventPage> {
                           color: colors2,
                           icon: Icons.arrow_forward,
                           text: 'Next',
-                          isEnabled: !state.eventList.isEmpty,
+                          isEnabled: state.eventList.isNotEmpty,
                           onTap: () {
                             setState(() {
-                              if (!state.eventList.isEmpty) {
+                              if (state.eventList.isNotEmpty) {
                                 _currentPage++;
                                 _fetchData();
                               }

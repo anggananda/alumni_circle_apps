@@ -1,4 +1,4 @@
-import 'package:alumni_circle_app/components/error_widget.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/category/cubit/category_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/dto/category.dart';
@@ -19,53 +19,46 @@ class _CategorySliderState extends State<CategorySlider> {
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<CategoryCubit>(context).fetchCategory();
-  }
-
-  void _fetchData(){
-    BlocProvider.of<EventCubit>(context).fetchEvent(1,'');
+    final accessToken = context.read<AuthCubit>().state.accessToken;
+    BlocProvider.of<CategoryCubit>(context).fetchCategory(accessToken!);
   }
 
   void _navigateToDetail(Categories category) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailCategory(category: category, onDataSubmitted: _fetchData,),
+        builder: (context) => DetailCategory(
+          category: category,
+          refreshData: _fetchData,
+        ),
       ),
     );
   }
 
+  void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
+    BlocProvider.of<EventCubit>(context).fetchEvent(1, '', accessToken!);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 250,
-      padding: const EdgeInsets.all(10),
-      child: BlocBuilder<CategoryCubit, CategoryState>(
-        builder: (context, state) {
-          if (state.isLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state.errorMessage.isNotEmpty) {
-            return Container(
-              height:600,
-              child: SingleChildScrollView(
-                child: ErrorDisplay(
-                      message: state.errorMessage,
-                      onRetry: () {
-                        context
-                            .read<CategoryCubit>()
-                            .fetchCategory(); // Retry fetching events
-                      },
-                    ),
-              ) 
-            );
-          } else if (state.categoryList.isEmpty) {
-            return Center(child: Text('No discussion data available'));
-          } else {
-            return ListView(
+    return BlocBuilder<CategoryCubit, CategoryState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state.errorMessage.isNotEmpty) {
+          return Container();
+        } else if (state.categoryList.isEmpty) {
+          return const Center(child: Text('No discussion data available'));
+        } else {
+          return Container(
+            height: 250,
+            padding: const EdgeInsets.all(10),
+            child: ListView(
               scrollDirection: Axis.horizontal,
               children: state.categoryList.map((category) {
                 return GestureDetector(
-                  onTap: (){
+                  onTap: () {
                     _navigateToDetail(category);
                   },
                   child: Container(
@@ -74,7 +67,8 @@ class _CategorySliderState extends State<CategorySlider> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
                       image: DecorationImage(
-                        image: NetworkImage('${Endpoints.urlUas}/static/storages/${category.image}'),
+                        image: NetworkImage(
+                            '${Endpoints.urlUas}/static/storages/${category.image}'),
                         fit: BoxFit.cover,
                         colorFilter: ColorFilter.mode(
                           Colors.black.withOpacity(0.5),
@@ -86,7 +80,7 @@ class _CategorySliderState extends State<CategorySlider> {
                           color: Colors.grey.withOpacity(0.5),
                           spreadRadius: 2,
                           blurRadius: 5,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -108,10 +102,10 @@ class _CategorySliderState extends State<CategorySlider> {
                   ),
                 );
               }).toList(),
-            );
-          }
-        },
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 }

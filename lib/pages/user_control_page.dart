@@ -2,6 +2,7 @@ import 'package:alumni_circle_app/components/custom_search_box.dart';
 import 'package:alumni_circle_app/components/error_widget.dart';
 import 'package:alumni_circle_app/components/paggination_page.dart';
 import 'package:alumni_circle_app/cubit/alumni/cubit/alumni_cubit.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/utils/dialog_helpers.dart';
 import 'package:flutter/material.dart';
@@ -12,13 +13,14 @@ class UserControlScreen extends StatefulWidget {
   const UserControlScreen({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _UserControlScreenState createState() => _UserControlScreenState();
 }
 
 class _UserControlScreenState extends State<UserControlScreen> {
   TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
-  String _searchQuery = '';
+  // String _searchQuery = '';
 
   @override
   void initState() {
@@ -34,13 +36,15 @@ class _UserControlScreenState extends State<UserControlScreen> {
   }
 
   void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<AlumniCubit>(context)
-        .fetchAlumniAll(_currentPage, _searchController.text);
+        .fetchAlumniAll(_currentPage, _searchController.text, accessToken!);
   }
 
   void _deleteUser(idAlumni) async {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final deleteCubit = context.read<AlumniCubit>();
-    deleteCubit.deleteAlumni(idAlumni, _currentPage);
+    deleteCubit.deleteAlumni(idAlumni, _currentPage, accessToken!);
     if (deleteCubit.state.errorMessage == '') {
       showSuccessDialog(context, 'Successfully Delete User');
     } else {
@@ -50,7 +54,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value;
+      // _searchQuery = value;
       _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
     });
     _fetchData();
@@ -58,7 +62,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
 
   void _onSearchCleared() {
     setState(() {
-      _searchQuery = "";
+      // _searchQuery = "";
       _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
     });
     _fetchData();
@@ -78,7 +82,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             child: CustomSearchBox(
               controller: _searchController,
               onChanged: (value) => _onSearchChanged(value),
@@ -90,18 +94,21 @@ class _UserControlScreenState extends State<UserControlScreen> {
             child: BlocBuilder<AlumniCubit, AlumniState>(
               builder: (context, state) {
                 if (state.isLoading) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (state.errorMessage.isNotEmpty) {
-                  return ErrorDisplay(
-                      message: state.errorMessage,
-                      onRetry: () {
-                        context
-                            .read<AlumniCubit>()
-                            .fetchAlumniAll(1, ''); // Retry fetching events
-                      },
-                    );
+                  return BlocBuilder<AuthCubit, AuthState>(
+                              builder: (context, state) {
+                                return ErrorDisplay(
+                                  message: "Failed to fetch discussion",
+                                  onRetry: () {
+                                    context.read<AlumniCubit>().fetchAlumniAll(
+                                        1, '', state.accessToken!); // Retry fetching events
+                                  },
+                                );
+                              },
+                            );
                 } else if (state.alumni.isEmpty) {
-                  return Center(child: Text('No user data available'));
+                  return const Center(child: Text('No user data available'));
                 } else {
                   return ListView.builder(
                     shrinkWrap: true,
@@ -119,7 +126,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
                             contentPadding: const EdgeInsets.all(15.0),
                             leading: CircleAvatar(
                               backgroundImage: NetworkImage(
-                                  '${Endpoints.urlUas}/static/storages/${alumni.fotoProfile ?? ''}'),
+                                  '${Endpoints.urlUas}/static/storages/${alumni.fotoProfile}'),
                               radius: 30,
                             ),
                             title: Text(
@@ -135,20 +142,20 @@ class _UserControlScreenState extends State<UserControlScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _buildRow(Icons.person, 'Username',
-                                      alumni.username ?? 'N/A'),
+                                      alumni.username),
                                   _buildRow(Icons.email, 'Email',
                                       alumni.email ?? 'N/A'),
                                   _buildRow(Icons.home, 'Alamat',
                                       alumni.alamat ?? 'N/A'),
                                   _buildRow(Icons.school, 'Angkatan',
-                                      '${alumni.angkatan}' ?? 'N/A'),
+                                      '${alumni.angkatan}'),
                                   _buildRow(Icons.transgender, 'Jenis Kelamin',
                                       alumni.jenisKelamin ?? 'N/A'),
                                   _buildRow(Icons.security, 'Roles',
-                                      alumni.roles ?? 'N/A'),
+                                      alumni.roles),
                                   _buildRow(Icons.work, 'Status Pekerjaan',
                                       alumni.statusPekerjaan ?? 'N/A'),
-                                  SizedBox(height: 10),
+                                  const SizedBox(height: 10),
                                   Center(
                                     child: ElevatedButton.icon(
                                       onPressed: () {
@@ -158,11 +165,11 @@ class _UserControlScreenState extends State<UserControlScreen> {
                                               _deleteUser(alumni.idAlumni);
                                             });
                                       },
-                                      icon: Icon(
+                                      icon: const Icon(
                                         Icons.delete,
                                         color: Colors.black,
                                       ),
-                                      label: Text('Delete User'),
+                                      label: const Text('Delete User'),
                                       style: ElevatedButton.styleFrom(
                                         foregroundColor: Colors.white, backgroundColor: Colors.red,
                                         shape: RoundedRectangleBorder(
@@ -185,7 +192,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -204,12 +211,12 @@ class _UserControlScreenState extends State<UserControlScreen> {
                     });
                   },
                 ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 Text(
                   'Page $_currentPage',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 BlocBuilder<AlumniCubit, AlumniState>(
                   builder: (context, state) {
                     return PaginationButton(
@@ -217,10 +224,10 @@ class _UserControlScreenState extends State<UserControlScreen> {
                       color: colors2,
                       icon: Icons.arrow_forward,
                       text: 'Next',
-                      isEnabled: !state.alumni.isEmpty,
+                      isEnabled: state.alumni.isNotEmpty,
                       onTap: () {
                         setState(() {
-                          if (!state.alumni.isEmpty) {
+                          if (state.alumni.isNotEmpty) {
                             _currentPage++;
                             _fetchData();
                           }
@@ -241,7 +248,7 @@ class _UserControlScreenState extends State<UserControlScreen> {
     return Row(
       children: [
         Icon(icon, size: 16, color: Colors.grey),
-        SizedBox(width: 5),
+        const SizedBox(width: 5),
         Expanded(
           child: Text(
             '$label: $value',

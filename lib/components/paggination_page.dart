@@ -1,4 +1,3 @@
-import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 
 class PaginationButton extends StatelessWidget {
@@ -34,15 +33,15 @@ class PaginationButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, color: Colors.white),
-              SizedBox(width: 5),
-              Text(text, style: TextStyle(color: Colors.white)),
+              const SizedBox(width: 5),
+              Text(text, style: const TextStyle(color: Colors.white)),
             ],
           )
           : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(text, style: TextStyle(color: Colors.white)),
-              SizedBox(width: 5),
+              Text(text, style: const TextStyle(color: Colors.white)),
+              const SizedBox(width: 5),
               Icon(icon, color: Colors.white),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
 import 'package:alumni_circle_app/components/error_widget.dart';
 import 'package:alumni_circle_app/components/paggination_page.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/feedback/cubit/feedback_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
@@ -19,7 +20,7 @@ class FeedbackPage extends StatefulWidget {
 class _FeedbackPageState extends State<FeedbackPage> {
   final _feedbackController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _searchQuery = '';
+  // String _searchQuery = '';
 
   late TextEditingController _searchController;
   int _currentPage = 1;
@@ -39,8 +40,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<FeedbackCubit>(context)
-        .fetchFeedback(_currentPage, _searchController.text);
+        .fetchFeedback(_currentPage, _searchController.text, accessToken!);
   }
 
   void _sendFeedback() async {
@@ -53,10 +55,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
           content: Text('Please fill in the data in the feedback box')));
       return;
     }
+    final accessToken = context.read<AuthCubit>().state.accessToken;
 
     final send = context.read<FeedbackCubit>(); // Gunakan DiskusiCubit
-    send.sendFeedback(currentState.idAlumni, feedback,
-        _currentPage); // Panggil method sendDiskusi
+    send.sendFeedback(currentState.idAlumni, feedback, _currentPage,
+        accessToken!); // Panggil method sendDiskusi
 
     if (send.state.errorMessage == '') {
       showSuccessDialog(context, 'post success.');
@@ -68,7 +71,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value;
+      // _searchQuery = value;
       _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
     });
     _fetchData();
@@ -76,7 +79,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   void _onSearchCleared() {
     setState(() {
-      _searchQuery = "";
+      // _searchQuery = "";
       _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
     });
     _fetchData();
@@ -97,14 +100,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: primaryColor,
                         borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(10),
                           bottomRight: Radius.circular(10),
                         ),
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Text(
                           'Feedback Hub',
                           style: TextStyle(
@@ -115,7 +118,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 10.0),
                       child: CustomSearchBox(
                         controller: _searchController,
@@ -127,22 +130,29 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     BlocBuilder<FeedbackCubit, FeedbackState>(
                       builder: (context, state) {
                         if (state.isLoading) {
-                          return Center(child: CircularProgressIndicator());
+                          return const Center(child: CircularProgressIndicator());
                         } else if (state.errorMessage.isNotEmpty) {
-                          return ErrorDisplay(
-                            message: state.errorMessage,
-                            onRetry: () {
-                              context.read<FeedbackCubit>().fetchFeedback(
-                                  1, ''); // Retry fetching events
+                          return BlocBuilder<AuthCubit, AuthState>(
+                            builder: (context, state) {
+                              return ErrorDisplay(
+                                message: "Failed to fetch discussion",
+                                onRetry: () {
+                                  context.read<FeedbackCubit>().fetchFeedback(
+                                      1,
+                                      '',
+                                      state
+                                          .accessToken!); // Retry fetching events
+                                },
+                              );
                             },
                           );
                         } else if (state.feedbackList.isEmpty) {
-                          return Center(
+                          return const Center(
                               child: Text('No discussion data available'));
                         } else {
                           return ListView.builder(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
+                            physics: const NeverScrollableScrollPhysics(),
                             itemCount: state.feedbackList.length,
                             itemBuilder: (context, index) {
                               final feedback = state.feedbackList[index];
@@ -163,7 +173,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                   Colors.black.withOpacity(0.1),
                                               spreadRadius: 2,
                                               blurRadius: 5,
-                                              offset: Offset(0, 3),
+                                              offset: const Offset(0, 3),
                                             ),
                                           ],
                                           borderRadius:
@@ -216,12 +226,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                       ),
                                                     ],
                                                   ),
-                                                  SizedBox(
+                                                  const SizedBox(
                                                     height: 15,
                                                   ),
-                                                  Text(
+                                                  const Text(
                                                     'Feedback 💚:',
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                         color: primaryFontColor,
                                                         fontSize: 14,
                                                         fontStyle:
@@ -237,7 +247,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                     textAlign:
                                                         TextAlign.justify,
                                                   ),
-                                                  SizedBox(
+                                                  const SizedBox(
                                                     height: 10,
                                                   ),
                                                   Text(
@@ -255,7 +265,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                       color: secondaryFontColor,
                                                     ),
                                                   ),
-                                                  SizedBox(
+                                                  const SizedBox(
                                                     height: 10,
                                                   ),
                                                 ],
@@ -275,7 +285,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     ),
                     Container(
                       padding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                          const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -294,12 +304,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               });
                             },
                           ),
-                          SizedBox(width: 20),
+                          const SizedBox(width: 20),
                           Text(
                             'Page $_currentPage',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(width: 20),
+                          const SizedBox(width: 20),
                           BlocBuilder<FeedbackCubit, FeedbackState>(
                             builder: (context, state) {
                               return PaginationButton(
@@ -307,10 +317,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 color: colors2,
                                 icon: Icons.arrow_forward,
                                 text: 'Next',
-                                isEnabled: !state.feedbackList.isEmpty,
+                                isEnabled: state.feedbackList.isNotEmpty,
                                 onTap: () {
                                   setState(() {
-                                    if (!state.feedbackList.isEmpty) {
+                                    if (state.feedbackList.isNotEmpty) {
                                       _currentPage++;
                                       _fetchData();
                                     }
@@ -329,15 +339,15 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     child: Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(5),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: primaryColor.withOpacity(0.9),
-                        borderRadius: BorderRadius.only(
+                        borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(20),
                           bottomRight: Radius.circular(20),
                         ),
                       ),
-                      child: ListTile(
+                      child: const ListTile(
                         title: Text(
                           "Feedback",
                           textAlign: TextAlign.center,
@@ -348,7 +358,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           ),
                         ),
                         subtitle: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Text(
                             "How can we assist you today?",
                             style: TextStyle(
@@ -361,17 +371,17 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Form(
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Padding(
+                                const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 10),
                                   child: Text(
                                     "Feedback ❤️",
@@ -396,14 +406,20 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   ),
                                   maxLines: 4,
                                 ),
-                                SizedBox(height: 30),
+                                const SizedBox(height: 30),
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     onPressed: () {
                                       _sendFeedback();
                                     },
-                                    child: Padding(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: const Padding(
                                       padding:
                                           EdgeInsets.symmetric(vertical: 16),
                                       child: Text(
@@ -412,12 +428,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             color: primaryFontColor),
-                                      ),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: primaryColor,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
                                   ),

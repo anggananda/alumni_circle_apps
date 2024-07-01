@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:alumni_circle_app/dto/event.dart';
 import 'package:alumni_circle_app/dto/vacancy.dart';
 import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +9,10 @@ part 'vacancy_state.dart';
 
 class VacancyCubit extends Cubit<VacancyState> {
   VacancyCubit() : super(const VacancyState.initial());
-  void fetchVacancy(int page, String search) async {
+  void fetchVacancy(int page, String search, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final vacancyList = await DataService.fetchVacancies(page, search);
+      final vacancyList = await DataService.fetchVacancies(page, search, accessToken);
       emit(state.copyWith(
         vacancyList: vacancyList,
         isLoading: false,
@@ -27,16 +26,16 @@ class VacancyCubit extends Cubit<VacancyState> {
     }
   }
 
-  void sendVacancy(String vacancyName, String vacancyDescripsion, File? imageFile, int page) async {
+  void sendVacancy(String vacancyName, String vacancyDescripsion, File? imageFile, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.sendVacancy(vacancyName, vacancyDescripsion, imageFile);
+      final response = await DataService.sendVacancy(vacancyName, vacancyDescripsion, imageFile, accessToken);
       if (response.statusCode == 201) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchVacancy(page, ''); 
+        fetchVacancy(page, '', accessToken); 
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -51,16 +50,16 @@ class VacancyCubit extends Cubit<VacancyState> {
     }
   }
 
-  void updateVacancy(int idVacancy, String vacancyName, String vacancyDescripsion, File? imageFile, int page) async {
+  void updateVacancy(int idVacancy, String vacancyName, String vacancyDescripsion, File? imageFile, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.updateVacancy(idVacancy, vacancyName, vacancyDescripsion, imageFile);
+      final response = await DataService.updateVacancy(idVacancy, vacancyName, vacancyDescripsion, imageFile, accessToken);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchVacancy(page, ''); // Refresh the list
+        fetchVacancy(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -75,16 +74,16 @@ class VacancyCubit extends Cubit<VacancyState> {
     }
   }
 
-  void deleteVacancy(int idVacancy, int page) async {
+  void deleteVacancy(int idVacancy, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.deleteVacancy(idVacancy);
+      final response = await DataService.deleteVacancy(idVacancy, accessToken);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchVacancy(page, ''); // Refresh the list
+        fetchVacancy(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,

@@ -1,3 +1,4 @@
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/dto/category.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
@@ -7,8 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DetailCategory extends StatefulWidget {
   final Categories category;
-  final VoidCallback? onDataSubmitted;
-  const DetailCategory({super.key, required this.category, this.onDataSubmitted});
+  final VoidCallback? refreshData;
+  const DetailCategory(
+      {super.key, required this.category, this.refreshData});
 
   @override
   State<DetailCategory> createState() => _DetailCategoryState();
@@ -18,8 +20,9 @@ class _DetailCategoryState extends State<DetailCategory> {
   @override
   void initState() {
     super.initState();
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<EventCubit>(context)
-        .fetchEventCategory(widget.category.idCategory);
+        .fetchEventCategory(widget.category.idCategory, accessToken!);
   }
 
   @override
@@ -51,24 +54,24 @@ class _DetailCategoryState extends State<DetailCategory> {
               ),
               child: Column(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
                   Container(
                     height: 70,
                     padding:
-                        EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+                        const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
                           onTap: () {
+                            widget.refreshData!();
                             Navigator.pop(context);
-                            widget.onDataSubmitted!();
                           },
                           child: Container(
-                            padding: EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               color: secondaryColor,
@@ -113,11 +116,11 @@ class _DetailCategoryState extends State<DetailCategory> {
               height: 15.0,
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 widget.category.description,
                 textAlign: TextAlign.justify,
-                style: TextStyle(color: primaryFontColor),
+                style: const TextStyle(color: primaryFontColor),
               ),
             ),
             const SizedBox(
@@ -137,70 +140,72 @@ class _DetailCategoryState extends State<DetailCategory> {
                 )
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 5,
             ),
-            Container(
-  height: 150,
-  padding: EdgeInsets.all(10),
-  child: BlocBuilder<EventCubit, EventState>(
-    builder: (context, state) {
-      if (state.isLoading) {
-        return Center(child: CircularProgressIndicator());
-      } else if (state.errorMessage.isNotEmpty) {
-        return Center(child: Text(state.errorMessage));
-      } else if (state.eventList.isEmpty) {
-        return Container();
-      } else {
-        return ListView.separated(
-          itemCount: state.eventList.length,
-          physics: const BouncingScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-          separatorBuilder: (BuildContext context, int index) {
-            return const SizedBox(
-              width: 15.0,
-            );
-          },
-          itemBuilder: (BuildContext context, int index) {
-            final event = state.eventList[index];
-            return Container(
-              width: 150,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                image: DecorationImage(
-                  image: NetworkImage('${Endpoints.urlUas}/static/storages/${event.gambar}'), // Pastikan 'event.imageUrl' mengandung URL gambar
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.5),
-                    BlendMode.darken,
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      event.namaEvent,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
+            BlocBuilder<EventCubit, EventState>(
+              builder: (context, state) {
+                if (state.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state.errorMessage.isNotEmpty) {
+                  return Center(child: Text(state.errorMessage));
+                } else if (state.eventList.isEmpty) {
+                  return Container();
+                } else {
+                  return Container(
+                    height: 150,
+                    padding: const EdgeInsets.all(10),
+                    child: ListView.separated(
+                      itemCount: state.eventList.length,
+                      physics: const BouncingScrollPhysics(),
+                      scrollDirection: Axis.horizontal,
+                      separatorBuilder: (BuildContext context, int index) {
+                        return const SizedBox(
+                          width: 15.0,
+                        );
+                      },
+                      itemBuilder: (BuildContext context, int index) {
+                        final event = state.eventList[index];
+                        return Container(
+                          width: 150,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                  '${Endpoints.urlUas}/static/storages/${event.gambar}'), // Pastikan 'event.imageUrl' mengandung URL gambar
+                              fit: BoxFit.cover,
+                              colorFilter: ColorFilter.mode(
+                                Colors.black.withOpacity(0.5),
+                                BlendMode.darken,
+                              ),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    event.namaEvent,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      }
-    },
-  ),
-)
-
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),

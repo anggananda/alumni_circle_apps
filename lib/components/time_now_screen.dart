@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:alumni_circle_app/dto/alumni.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -15,31 +14,36 @@ class TimeNow extends StatefulWidget {
 
 class _TimeNowState extends State<TimeNow> {
   String _timeOfDay = '';
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _updateTimeOfDay();
-    Timer.periodic(const Duration(minutes: 1), (timer) {
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _updateTimeOfDay();
     });
   }
 
   void _updateTimeOfDay() {
     DateTime now = DateTime.now();
-    if (now.hour >= 0 && now.hour < 12) {
-      setState(() {
+    if (!mounted) return; // Pastikan widget masih aktif sebelum memanggil setState
+
+    setState(() {
+      if (now.hour >= 0 && now.hour < 12) {
         _timeOfDay = 'Morning';
-      });
-    } else if (now.hour >= 12 && now.hour < 18) {
-      setState(() {
+      } else if (now.hour >= 12 && now.hour < 18) {
         _timeOfDay = 'Afternoon';
-      });
-    } else {
-      setState(() {
+      } else {
         _timeOfDay = 'Evening';
-      });
-    }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Batalkan timer
+    super.dispose();
   }
 
   @override

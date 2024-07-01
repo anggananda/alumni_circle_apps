@@ -9,10 +9,10 @@ part 'diskusi_state.dart';
 class DiskusiCubit extends Cubit<DiskusiState> {
   DiskusiCubit() : super(const DiskusiState.initial());
 
-  void fetchDiskusi(int page, String search) async {
+  void fetchDiskusi(int page, String search, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final diskusiList = await DataService.fetchDiskusi(page, search);
+      final diskusiList = await DataService.fetchDiskusi(page, search, accessToken);
       emit(state.copyWith(
         diskusiList: diskusiList,
         isLoading: false,
@@ -26,16 +26,16 @@ class DiskusiCubit extends Cubit<DiskusiState> {
     }
   }
 
-  void sendDiskusi(int idAlumni, String subject, String content, int page) async {
+  void sendDiskusi(int idAlumni, String subject, String content, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.sendDiskusi(idAlumni, subject, content);
+      final response = await DataService.sendDiskusi(idAlumni, subject, content, accessToken);
       if (response.statusCode == 201) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchDiskusi(page, ''); // Refresh the list
+        fetchDiskusi(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -50,16 +50,16 @@ class DiskusiCubit extends Cubit<DiskusiState> {
     }
   }
 
-  void updateDiskusi(int idDiskusi, String subject, String content, int page) async {
+  void updateDiskusi(int idDiskusi, String subject, String content, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.updateDiskusi(idDiskusi, subject, content);
+      final response = await DataService.updateDiskusi(idDiskusi, subject, content, accessToken);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchDiskusi(page, ''); // Refresh the list
+        fetchDiskusi(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,
@@ -74,16 +74,16 @@ class DiskusiCubit extends Cubit<DiskusiState> {
     }
   }
 
-  void deleteDiskusi(int idDiskusi, int page) async {
+  void deleteDiskusi(int idDiskusi, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.deleteDiskusi(idDiskusi);
+      final response = await DataService.deleteDiskusi(idDiskusi, accessToken);
       if (response.statusCode == 200) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchDiskusi(page, ''); // Refresh the list
+        fetchDiskusi(page, '', accessToken); // Refresh the list
       } else {
         emit(state.copyWith(
           isLoading: false,

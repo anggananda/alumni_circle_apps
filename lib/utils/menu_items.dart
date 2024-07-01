@@ -1,4 +1,5 @@
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
+import 'package:alumni_circle_app/utils/secure_storage_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,9 +11,25 @@ class MenuItem {
   MenuItem({required this.title, required this.onPressed, required this.img});
 }
 
-List<MenuItem> getMenuItems(BuildContext context) {
+Future<String> getMenu() async {
+  final rolesString = await SecureStorageUtil.storage.read(key: 'roles');
+  if (rolesString != null) {
+    return rolesString;
+  } else {
+    debugPrint('Error: rolesString is null');
+    return 'gagal'; // Berhenti jika rolesString null
+  }
+}
+
+Future<List<MenuItem>> getMenuItems(BuildContext context) async {
   final cubit = context.read<ProfileCubit>();
   final currentState = cubit.state;
+  String roles = currentState.roles; // Ambil nilai roles dari state
+
+  if (roles.isEmpty) {
+    // Jika roles kosong, ambil dari SecureStorageUtil
+    roles = await getMenu();
+  }
 
   List<MenuItem> menuItems = [
     MenuItem(
@@ -42,7 +59,7 @@ List<MenuItem> getMenuItems(BuildContext context) {
     ),
   ];
 
-  if (currentState.roles == 'admin') {
+  if (roles == 'admin') {
     menuItems.add(MenuItem(
       title: 'User Control',
       img: 'assets/images/userControl.png',

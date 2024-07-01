@@ -9,6 +9,7 @@ class AddPostForm extends StatefulWidget {
   final DatabaseHelper dbHelper;
 
   @override
+  // ignore: library_private_types_in_public_api
   _AddPostFormState createState() => _AddPostFormState();
 }
 
@@ -22,12 +23,12 @@ class _AddPostFormState extends State<AddPostForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Postingan'),
+        title: const Text('Tambah Postingan'),
         backgroundColor: primaryColor,
       ),
       body: SingleChildScrollView( // Wrap the Column with SingleChildScrollView
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -48,7 +49,7 @@ class _AddPostFormState extends State<AddPostForm> {
                     return null;
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _contentController,
                   maxLines: 5,
@@ -65,31 +66,31 @@ class _AddPostFormState extends State<AddPostForm> {
                     return null;
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 TextButton(
                   onPressed: _selectDate,
                   child: Text('Select Date: ${_selectedDate.toString().substring(0, 10)}'),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
                       onPressed: _submit,
-                      child: Text('Submit'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                       ),
+                      child: const Text('Submit'),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                     ),
                   ],
                 ),

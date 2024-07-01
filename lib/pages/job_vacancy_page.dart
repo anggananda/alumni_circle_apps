@@ -1,6 +1,7 @@
 import 'package:alumni_circle_app/components/custom_search_box.dart';
 import 'package:alumni_circle_app/components/error_widget.dart';
 import 'package:alumni_circle_app/components/paggination_page.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
 import 'package:alumni_circle_app/details/detail_vacancy.dart';
@@ -8,7 +9,6 @@ import 'package:alumni_circle_app/dto/vacancy.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/pages/update_vacancy_page.dart';
 import 'package:alumni_circle_app/pages/vacancy_form_page.dart';
-import 'package:alumni_circle_app/services/data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +23,7 @@ class JobVacancyPage extends StatefulWidget {
 class _JobVacancyPageState extends State<JobVacancyPage> {
   late TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
-  String _searchQuery = "";
+  // String _searchQuery = "";
 
   @override
   void initState() {
@@ -39,8 +39,9 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
   }
 
   void _fetchData() {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     BlocProvider.of<VacancyCubit>(context)
-        .fetchVacancy(_currentPage, _searchController.text);
+        .fetchVacancy(_currentPage, _searchController.text, accessToken!);
   }
 
   void _navigateToDetail(Vacancies vacancy) {
@@ -78,7 +79,7 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value;
+      // _searchQuery = value;
       _currentPage = 1; // Reset halaman ke 1 saat melakukan pencarian
     });
     _fetchData();
@@ -86,7 +87,7 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
 
   void _onSearchCleared() {
     setState(() {
-      _searchQuery = "";
+      // _searchQuery = "";
       _currentPage = 1; // Reset halaman ke 1 saat pencarian dihapus
     });
     _fetchData();
@@ -131,12 +132,12 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                   if (state.roles == 'admin') {
                     return Column(
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           height: 30,
                         ),
                         Row(
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 15,
                             ),
                             GestureDetector(
@@ -144,7 +145,7 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                 _navigateToForm();
                               },
                               child: Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     vertical: 10, horizontal: 20),
                                 decoration: BoxDecoration(
                                   color: Colors.blue,
@@ -154,12 +155,12 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                       color: Colors.grey.withOpacity(0.5),
                                       spreadRadius: 2,
                                       blurRadius: 5,
-                                      offset: Offset(
+                                      offset: const Offset(
                                           0, 3), // changes position of shadow
                                     ),
                                   ],
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
@@ -187,10 +188,10 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                   }
                 },
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Padding(
@@ -205,24 +206,27 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               BlocBuilder<VacancyCubit, VacancyState>(
                 builder: (context, state) {
                   if (state.isLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (state.errorMessage.isNotEmpty) {
-                    return ErrorDisplay(
-                      message: state.errorMessage,
-                      onRetry: () {
-                        context
-                            .read<VacancyCubit>()
-                            .fetchVacancy(1, ''); // Retry fetching events
+                    return BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, state) {
+                        return ErrorDisplay(
+                          message: "Failed to fetch Vacancy",
+                          onRetry: () {
+                            context.read<VacancyCubit>().fetchVacancy(1, '',
+                                state.accessToken!); // Retry fetching events
+                          },
+                        );
                       },
                     );
                   } else if (state.vacancyList.isEmpty) {
-                    return Center(child: Text('No discussion data available'));
+                    return const Center(child: Text('No discussion data available'));
                   } else {
                     return Column(
                       children: [
@@ -237,7 +241,7 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                               separatorBuilder:
                                   (BuildContext context, int index) {
                                 // Tambahkan jarak vertikal antara setiap item
-                                return SizedBox(height: 10);
+                                return const SizedBox(height: 10);
                               },
                               itemBuilder: (context, index) {
                                 final vacancy = state.vacancyList[index];
@@ -258,14 +262,14 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                             color: Colors.grey.withOpacity(0.5),
                                             spreadRadius: 2,
                                             blurRadius: 5,
-                                            offset: Offset(0, 3),
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
                                       child: Row(
                                         children: [
                                           Padding(
-                                            padding: EdgeInsets.all(10),
+                                            padding: const EdgeInsets.all(10),
                                             child: Container(
                                               width: 100,
                                               height: 100,
@@ -282,14 +286,14 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                           ),
                                           Expanded(
                                             child: Padding(
-                                              padding: EdgeInsets.all(10),
+                                              padding: const EdgeInsets.all(10),
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     vacancy.namaVacancy,
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                         fontSize: 16.0,
                                                         fontWeight:
                                                             FontWeight.bold),
@@ -297,13 +301,13 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                                         TextOverflow.ellipsis,
                                                     maxLines: 1,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  const SizedBox(height: 5),
                                                   Flexible(
                                                     child: Text(
                                                       vacancy.deskripsi,
                                                       overflow:
                                                           TextOverflow.fade,
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                           fontSize: 10),
                                                       textAlign:
                                                           TextAlign.justify,
@@ -318,7 +322,7 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                             builder: (context, state) {
                                               if (state.roles == 'admin') {
                                                 return Container(
-                                                  padding: EdgeInsets.only(
+                                                  padding: const EdgeInsets.only(
                                                       right: 10),
                                                   child: ElevatedButton.icon(
                                                     icon: const Icon(
@@ -337,7 +341,11 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                                     ),
                                                     style: ElevatedButton
                                                         .styleFrom(
-                                                      foregroundColor: Colors.greenAccent, backgroundColor: Colors.green, padding: const EdgeInsets
+                                                      foregroundColor:
+                                                          Colors.greenAccent,
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                      padding: const EdgeInsets
                                                           .symmetric(
                                                           vertical: 12,
                                                           horizontal: 16),
@@ -368,14 +376,14 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                                 );
                               },
                             )),
-                        SizedBox(height: 15), // Tambahkan jarak setelah daftar
+                        const SizedBox(height: 15), // Tambahkan jarak setelah daftar
                       ],
                     );
                   }
                 },
               ),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -394,12 +402,12 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                         });
                       },
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     Text(
                       'Page $_currentPage',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     BlocBuilder<VacancyCubit, VacancyState>(
                       builder: (context, state) {
                         return PaginationButton(
@@ -407,10 +415,10 @@ class _JobVacancyPageState extends State<JobVacancyPage> {
                           color: colors2,
                           icon: Icons.arrow_forward,
                           text: 'Next',
-                          isEnabled: !state.vacancyList.isEmpty,
+                          isEnabled: state.vacancyList.isNotEmpty,
                           onTap: () {
                             setState(() {
-                              if (!state.vacancyList.isEmpty) {
+                              if (state.vacancyList.isNotEmpty) {
                                 _currentPage++;
                                 _fetchData();
                               }

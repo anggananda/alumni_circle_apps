@@ -703,3 +703,11 @@ Container(
                                       ],
                                     ),
                                   ),
+
+
+keytool -genkey -v -keystore alumniCircle.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 9999 -alias alumniAppCircle -keypass alumniCircle24 -storepass alumniCircle@24
+
+storeFile=alumniCircle.jks
+storePassword=alumniCircle@24
+keyAlias=alumniAppCircle
+keyPassword=alumniCircle24

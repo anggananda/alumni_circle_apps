@@ -8,10 +8,10 @@ part 'question_state.dart';
 
 class QuestionCubit extends Cubit<QuestionState> {
   QuestionCubit() : super(const QuestionState.initial());
-  void fetchQuestion(int page, String search) async {
+  void fetchQuestion(int page, String search, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final questionList = await DataService.fetchQuestion(page, search);
+      final questionList = await DataService.fetchQuestion(page, search, accessToken);
       emit(state.copyWith(
         questionList: questionList,
         isLoading: false,
@@ -25,16 +25,16 @@ class QuestionCubit extends Cubit<QuestionState> {
     }
   }
 
-  void sendQuestion(int idAlumni, String question, int page) async {
+  void sendQuestion(int idAlumni, String question, int page, String accessToken) async {
     emit(state.copyWith(isLoading: true));
     try {
-      final response = await DataService.sendQuestion(idAlumni, question);
+      final response = await DataService.sendQuestion(idAlumni, question, accessToken);
       if (response.statusCode == 201) {
         emit(state.copyWith(
           isLoading: false,
           errorMessage: '',
         ));
-        fetchQuestion(page, '');
+        fetchQuestion(page, '', accessToken);
       } else {
         emit(state.copyWith(
           isLoading: false,

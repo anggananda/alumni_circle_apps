@@ -1,4 +1,5 @@
 import 'package:alumni_circle_app/components/toggle_action_widget.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/cubit/reply/cubit/reply_cubit.dart';
 import 'package:alumni_circle_app/dto/diskusi.dart';
@@ -33,7 +34,8 @@ class _DetailForumState extends State<DetailForum> {
   }
 
   void _fetchData() {
-    BlocProvider.of<ReplyCubit>(context).fetchReply(widget.diskusi.idDiskusi);
+    final accessToken = context.read<AuthCubit>().state.accessToken;
+    BlocProvider.of<ReplyCubit>(context).fetchReply(widget.diskusi.idDiskusi, accessToken!);
   }
 
   void _sendReply() async {
@@ -51,9 +53,9 @@ class _DetailForumState extends State<DetailForum> {
     }
 
     debugPrint('$idAlumni, $idDiskusi, $reply');
-
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final send = context.read<ReplyCubit>(); // Gunakan DiskusiCubit
-    send.sendReply(idAlumni, idDiskusi, reply); // Panggil method sendDiskusi
+    send.sendReply(idAlumni, idDiskusi, reply, accessToken!); // Panggil method sendDiskusi
     if (send.state.errorMessage == '') {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Success to post reply')));
@@ -79,8 +81,14 @@ class _DetailForumState extends State<DetailForum> {
   }
 
   void _updateReply(int idReply, String content) {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
+    if(content.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all the data!')));
+      return;
+    }
     final update = context.read<ReplyCubit>(); // Gunakan DiskusiCubit
-    update.updateReply(idReply, content); // Panggil method sendDiskusi
+    update.updateReply(idReply, content, accessToken!); // Panggil method sendDiskusi
 
     Navigator.of(context).pop();
     if (update.state.errorMessage == '') {
@@ -92,8 +100,9 @@ class _DetailForumState extends State<DetailForum> {
   }
 
   void _deleteReply(idReply) async {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final deleteCubit = context.read<ReplyCubit>();
-    deleteCubit.deleteReply(idReply);
+    deleteCubit.deleteReply(idReply, accessToken!);
     if (deleteCubit.state.errorMessage == '') {
       showSuccessDialog(context, 'Success Delete Reply');
     } else {
@@ -178,7 +187,7 @@ class _DetailForumState extends State<DetailForum> {
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       const Divider(),
@@ -200,23 +209,23 @@ class _DetailForumState extends State<DetailForum> {
                 BlocBuilder<ReplyCubit, ReplyState>(
                   builder: (context, state) {
                     if (state.isLoading) {
-                      return Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     } else if (state.errorMessage.isNotEmpty) {
                       return Center(child: Text(state.errorMessage));
                     } else if (state.replyList.isEmpty) {
-                      return Center(
+                      return const Center(
                           child: Text('No discussion data available'));
                     } else {
                       return ListView.builder(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: state.replyList.length,
                         itemBuilder: (context, index) {
                           final reply = state.replyList[index];
                           return Container(
-                            padding: EdgeInsets.only(left: 20),
+                            padding: const EdgeInsets.only(left: 20),
                             child: Container(
-                              padding: EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                   color: thirdColor,
                                   borderRadius: BorderRadius.circular(10)),
@@ -253,7 +262,7 @@ class _DetailForumState extends State<DetailForum> {
                                               ),
                                             ),
                                             Text(
-                                              '${formatDateString(reply.tanggal)}',
+                                              formatDateString(reply.tanggal),
                                               style: const TextStyle(
                                                 color: secondaryFontColor,
                                                 fontSize: 10
@@ -283,7 +292,7 @@ class _DetailForumState extends State<DetailForum> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 8,),
+                                  const SizedBox(height: 8,),
                                   Text(
                                     reply.isiReply,
                                     textAlign: TextAlign.justify,
@@ -319,7 +328,7 @@ class _DetailForumState extends State<DetailForum> {
                           color: Colors.black.withOpacity(0.1),
                           spreadRadius: 2,
                           blurRadius: 5,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -334,7 +343,7 @@ class _DetailForumState extends State<DetailForum> {
                 ),
                 const SizedBox(width: 8.0),
                 Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: primaryColor,
                     shape: BoxShape.circle,
                   ),

@@ -7,7 +7,7 @@ class CustomSearchBox extends StatelessWidget {
   final Function onClear;
   final String hintText;
 
-  const CustomSearchBox({
+  const CustomSearchBox({super.key, 
     required this.controller,
     required this.onChanged,
     required this.onClear,
@@ -18,7 +18,7 @@ class CustomSearchBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 10.0,
@@ -44,10 +44,10 @@ class CustomSearchBox extends StatelessWidget {
             borderSide: BorderSide.none,
           ),
           hintStyle: TextStyle(color: primaryFontColor.withOpacity(0.6)),
-          prefixIcon: Icon(Icons.search, color: primaryFontColor),
+          prefixIcon: const Icon(Icons.search, color: primaryFontColor),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, color: primaryFontColor),
+                  icon: const Icon(Icons.clear, color: primaryFontColor),
                   onPressed: () {
                     controller.clear();
                     onClear();
@@ -55,9 +55,9 @@ class CustomSearchBox extends StatelessWidget {
                 )
               : null,
           contentPadding:
-              EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+              const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
         ),
-        style: TextStyle(color: primaryFontColor),
+        style: const TextStyle(color: primaryFontColor),
       ),
     );
   }

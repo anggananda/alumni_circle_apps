@@ -20,15 +20,25 @@ class _NavigatorBarPageState extends State<NavigatorBarPage> {
     const ProfilePage(),
   ];
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   context.read<ProfileCubit>().state.idAlumni == 0 ? isLoggin() : '';
+  // }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  void initialState(){
-    
-  }
+  // void isLoggin() {
+  //   debugPrint("haloo bang udah login");
+  //   final cubit = context.read<ProfileCubit>();
+  //   final id = cubit.state.idAlumni;
+  //   final roles = cubit.state.roles;
+  //   cubit.setProfile(roles, id);
+  // }
 
   @override
   Widget build(BuildContext context) {

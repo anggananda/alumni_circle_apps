@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/category/cubit/category_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/dto/event.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class UpdateEventPage extends StatefulWidget {
   final VoidCallback? onDataSubmitted;
@@ -19,6 +21,7 @@ class UpdateEventPage extends StatefulWidget {
       {super.key, required this.event, this.onDataSubmitted, this.page});
 
   @override
+  // ignore: library_private_types_in_public_api
   _UpdateEventPageState createState() => _UpdateEventPageState();
 }
 
@@ -30,6 +33,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
   late TextEditingController _latitudeController = TextEditingController();
   late TextEditingController _longitudeController = TextEditingController();
   late int selectedCategoryId;
+  DateTime? _selectedDate;
 
   File? galleryFile;
   final picker = ImagePicker();
@@ -57,7 +61,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
     _locationController.dispose();
     _descriptionController.dispose();
     _latitudeController.dispose();
-    _locationController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -69,8 +73,19 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
     String latitude = _latitudeController.text;
     String longitude = _longitudeController.text;
 
-    debugPrint(eventDate);
+    if (eventName.isEmpty ||
+        eventDate.isEmpty ||
+        eventLocation.isEmpty ||
+        eventDescription.isEmpty ||
+        latitude.isEmpty ||
+        longitude.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all the data!')));
+      return;
+    }
 
+    debugPrint(eventDate);
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final send = context.read<EventCubit>(); // Gunakan DiskusiCubit
     send.updateEvent(
         widget.event.idEvent,
@@ -82,7 +97,8 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
         galleryFile,
         widget.page!,
         latitude,
-        longitude);
+        longitude,
+        accessToken!);
     Navigator.pop(context);
     if (send.state.errorMessage == '') {
       showSuccessDialog(context, 'update success.');
@@ -181,16 +197,45 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                      border: Border(
-                                          bottom: BorderSide(
-                                              color: Colors.grey.shade200))),
-                                  child: TextField(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                  ),
+                                  child: TextFormField(
                                     controller: _dateController,
-                                    decoration: const InputDecoration(
-                                        hintText: "Date",
-                                        hintStyle:
-                                            TextStyle(color: Colors.grey),
-                                        border: InputBorder.none),
+                                    decoration: InputDecoration(
+                                      hintText: "Date",
+                                      hintStyle:
+                                          const TextStyle(color: Colors.grey),
+                                      border: InputBorder.none,
+                                      suffixIcon: GestureDetector(
+                                        onTap: () async {
+                                          DateTime? pickedDate =
+                                              await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                _selectedDate ?? DateTime.now(),
+                                            firstDate: DateTime(2000),
+                                            lastDate: DateTime(2100),
+                                          );
+                                          if (pickedDate != null) {
+                                            setState(() {
+                                              _selectedDate = pickedDate;
+                                              _dateController.text =
+                                                  DateFormat('yyyy-MM-dd')
+                                                      .format(pickedDate);
+                                            });
+                                          }
+                                        },
+                                        child: const Icon(
+                                          Icons.calendar_today,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    readOnly:
+                                        true, // Membuat input hanya bisa dipilih melalui date picker
                                   ),
                                 ),
                                 Container(
@@ -232,7 +277,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                                           value: category.idCategory,
                                           child: Text(
                                             category.nameCategory,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
                                               color: Colors
@@ -246,7 +291,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                                           selectedCategoryId = value!;
                                         });
                                       },
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         contentPadding: EdgeInsets.symmetric(
                                             horizontal: 20, vertical: 12),
                                         labelText: 'Category',
@@ -313,7 +358,7 @@ class _UpdateEventPageState extends State<UpdateEventPage> {
                                     height: 150,
                                     child: galleryFile == null
                                         ? Container(
-                                            padding: EdgeInsets.all(5),
+                                            padding: const EdgeInsets.all(5),
                                             child: Center(
                                                 child: Image.network(
                                                     '${Endpoints.urlUas}/static/storages/${widget.event.gambar}')),

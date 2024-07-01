@@ -1,3 +1,4 @@
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
 import 'package:alumni_circle_app/cubit/profile/cubit/profile_cubit.dart';
 import 'package:alumni_circle_app/dto/event.dart';
@@ -28,10 +29,12 @@ class _DetailEventState extends State<DetailEvent> {
 
     final idAlumni = currentState.idAlumni;
     final idEvent = widget.event.idEvent;
+    final accessToken = context.read<AuthCubit>().state.accessToken;
 
     debugPrint('$idAlumni, $idEvent');
 
-    final response = await DataService.sendListEvent(idAlumni, idEvent);
+    final response =
+        await DataService.sendListEvent(idAlumni, idEvent, accessToken!);
 
     if (response.statusCode == 201) {
       showSuccessDialog(context, 'Success to add Event to List Event');
@@ -42,8 +45,9 @@ class _DetailEventState extends State<DetailEvent> {
   }
 
   void _deleteEvent(idEvent) async {
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final deleteCubit = context.read<EventCubit>();
-    deleteCubit.deleteEvent(idEvent, widget.page!);
+    deleteCubit.deleteEvent(idEvent, widget.page!, accessToken!);
     Navigator.pop(context);
     if (deleteCubit.state.errorMessage == '') {
       showSuccessDialog(context, 'Successfully Delete Vacancy');
@@ -92,12 +96,12 @@ class _DetailEventState extends State<DetailEvent> {
                 ),
                 child: Column(
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 8,
                     ),
                     Container(
                       height: 70,
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 15.0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -108,7 +112,7 @@ class _DetailEventState extends State<DetailEvent> {
                               Navigator.pop(context);
                             },
                             child: Container(
-                              padding: EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 color: secondaryColor,
@@ -126,7 +130,7 @@ class _DetailEventState extends State<DetailEvent> {
                 height: 20.0,
               ),
               Padding(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
                   child: Column(
@@ -138,7 +142,7 @@ class _DetailEventState extends State<DetailEvent> {
                           Flexible(
                             child: Text(
                               "🌟 ${widget.event.namaEvent}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: primaryFontColor,
@@ -146,16 +150,16 @@ class _DetailEventState extends State<DetailEvent> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10.0,
                           ),
-                          Text(
+                          const Text(
                             "Details",
                             style: TextStyle(color: primaryFontColor),
                           ),
                         ],
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -164,19 +168,19 @@ class _DetailEventState extends State<DetailEvent> {
                               onPressed: () {
                                 _navigateToMap(widget.event);
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.location_on,
                                 color: Colors.green,
                               ),
-                              label: Text(
+                              label: const Text(
                                 'Open Map',
                                 style: TextStyle(
                                     color: primaryFontColor,
                                     fontWeight: FontWeight.bold),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.green),
-                                padding: EdgeInsets.symmetric(
+                                side: const BorderSide(color: Colors.green),
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 8),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -184,25 +188,25 @@ class _DetailEventState extends State<DetailEvent> {
                               ),
                             ),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 _sendListEvent();
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.bookmark_add,
                                 color: primaryColor,
                               ),
-                              label: Text(
+                              label: const Text(
                                 'Save Event',
                                 style: TextStyle(
                                     color: primaryFontColor,
                                     fontWeight: FontWeight.bold),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: primaryColor),
-                                padding: EdgeInsets.symmetric(
+                                side: const BorderSide(color: primaryColor),
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 8),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -217,90 +221,94 @@ class _DetailEventState extends State<DetailEvent> {
               const SizedBox(
                 height: 15.0,
               ),
-              Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    width: 370,
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          color: primaryFontColor,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      width: 370,
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            color: primaryFontColor,
+                          ),
+                          children: <TextSpan>[
+                            const TextSpan(
+                                text: 'Date : ',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                                text:
+                                    formatDateString(widget.event.tanggalEvent),
+                                style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey)),
+                          ],
                         ),
-                        children: <TextSpan>[
-                          TextSpan(
-                              text: 'Date : ',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
-                              text: formatDateString(widget.event.tanggalEvent),
-                              style: TextStyle(
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.grey)),
-                        ],
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    width: 370,
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          color: primaryFontColor,
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      width: 370,
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            color: primaryFontColor,
+                          ),
+                          children: <TextSpan>[
+                            const TextSpan(
+                                text: 'Location : ',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                                text: widget.event.lokasi,
+                                style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey)),
+                          ],
                         ),
-                        children: <TextSpan>[
-                          TextSpan(
-                              text: 'Location : ',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
-                              text: widget.event.lokasi,
-                              style: TextStyle(
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.grey)),
-                        ],
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    width: 370,
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          color: primaryFontColor,
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      width: 370,
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            color: primaryFontColor,
+                          ),
+                          children: <TextSpan>[
+                            const TextSpan(
+                                text: 'Category : ',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                                text: widget.event.category,
+                                style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey)),
+                          ],
                         ),
-                        children: <TextSpan>[
-                          TextSpan(
-                              text: 'Category : ',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(
-                              text: widget.event.category,
-                              style: TextStyle(
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.grey)),
-                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   widget.event.deskripsi,
                   textAlign: TextAlign.justify,
-                  style: TextStyle(color: primaryFontColor),
+                  style: const TextStyle(color: primaryFontColor),
                 ),
               ),
               const SizedBox(
                 height: 15.0,
               ),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                width: 370,
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+                width: double.infinity,
                 child: RichText(
                   text: const TextSpan(
                     style: TextStyle(
@@ -327,7 +335,7 @@ class _DetailEventState extends State<DetailEvent> {
                   return Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -344,7 +352,9 @@ class _DetailEventState extends State<DetailEvent> {
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.redAccent, backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(
+                                  foregroundColor: Colors.redAccent,
+                                  backgroundColor: Colors.red,
+                                  padding: const EdgeInsets.symmetric(
                                       vertical: 14, horizontal: 20),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
@@ -370,6 +380,9 @@ class _DetailEventState extends State<DetailEvent> {
                   return Container();
                 }
               }),
+              const SizedBox(
+                height: 20.0,
+              ),
             ],
           ),
         ),

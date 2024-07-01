@@ -1,7 +1,6 @@
 import 'dart:io';
-import 'package:alumni_circle_app/cubit/event/cubit/event_cubit.dart';
+import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
 import 'package:alumni_circle_app/cubit/vacancy/cubit/vacancy_cubit.dart';
-import 'package:alumni_circle_app/dto/event.dart';
 import 'package:alumni_circle_app/dto/vacancy.dart';
 import 'package:alumni_circle_app/endpoints/endpoints.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
@@ -20,6 +19,7 @@ class UpdateVacancyPage extends StatefulWidget {
       {super.key, required this.vacancy, this.onDataSubmitted, this.page});
 
   @override
+  // ignore: library_private_types_in_public_api
   _UpdateVacancyPageState createState() => _UpdateVacancyPageState();
 }
 
@@ -49,9 +49,16 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
     String vacancyName = _nameController.text;
     String vacancyDescription = _descriptionController.text;
 
+    if (vacancyName.isEmpty || vacancyDescription.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all the data!')));
+      return;
+    }
+
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final send = context.read<VacancyCubit>(); // Gunakan DiskusiCubit
     send.updateVacancy(widget.vacancy.idVacancy, vacancyName,
-        vacancyDescription, galleryFile, widget.page!);
+        vacancyDescription, galleryFile, widget.page!, accessToken!);
 
     Navigator.pop(context);
     if (send.state.errorMessage == '') {
@@ -183,7 +190,7 @@ class _UpdateVacancyPageState extends State<UpdateVacancyPage> {
                                     height: 150,
                                     child: galleryFile == null
                                         ? Container(
-                                            padding: EdgeInsets.all(5),
+                                            padding: const EdgeInsets.all(5),
                                             child: Center(
                                                 child: Image.network(
                                                     '${Endpoints.urlUas}/static/storages/${widget.vacancy.gambar}')),

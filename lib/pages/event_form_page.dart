@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class EventFormPage extends StatefulWidget {
   final VoidCallback? onDataSubmitted;
@@ -18,6 +19,7 @@ class EventFormPage extends StatefulWidget {
       : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _EventFormPageState createState() => _EventFormPageState();
 }
 
@@ -28,6 +30,7 @@ class _EventFormPageState extends State<EventFormPage> {
   final _descriptionController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  DateTime? _selectedDate;
 
   File? galleryFile;
   final picker = ImagePicker();
@@ -46,7 +49,7 @@ class _EventFormPageState extends State<EventFormPage> {
     _locationController.dispose();
     _descriptionController.dispose();
     _latitudeController.dispose();
-    _locationController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -57,16 +60,18 @@ class _EventFormPageState extends State<EventFormPage> {
     String eventDescription = _descriptionController.text;
     String latitude = _latitudeController.text;
     String longitude = _longitudeController.text;
-    final title = "🎉 Event Baru Telah Hadir! ~ ${eventName}";
+    final title = "🎉 Event Baru Telah Hadir! ~ $eventName";
     const body =
         '''Hai Circle Mate 👋 Jangan lewatkan event terbaru yang telah kami posting. Klik di sini untuk mengetahui lebih lanjut dan bergabunglah dengan keseruan acara ini! Terima kasih telah menjadi bagian dari komunitas kami. Salam hangat, Tim AlumniCircle 💞''';
 
     debugPrint(selectedCategoryId.toString());
 
-    if (eventName.isEmpty &&
-        eventDate.isEmpty &&
-        eventLocation.isEmpty &&
-        eventDescription.isEmpty) {
+    if (eventName.isEmpty ||
+        eventDate.isEmpty ||
+        eventLocation.isEmpty ||
+        eventDescription.isEmpty ||
+        latitude.isEmpty ||
+        longitude.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill all the data!')));
       return;
@@ -75,13 +80,22 @@ class _EventFormPageState extends State<EventFormPage> {
     final acessToken = context.read<AuthCubit>().state.accessToken;
     final token = context.read<AuthCubit>().state.token;
     final send = context.read<EventCubit>(); // Gunakan DiskusiCubit
-    send.sendEvent(selectedCategoryId!, eventName, eventDate, eventLocation,
-        eventDescription, galleryFile, widget.page!, latitude, longitude);
+    send.sendEvent(
+        selectedCategoryId!,
+        eventName,
+        eventDate,
+        eventLocation,
+        eventDescription,
+        galleryFile,
+        widget.page!,
+        latitude,
+        longitude,
+        acessToken!);
     Navigator.pop(context);
     if (send.state.errorMessage == '') {
       showSuccessDialog(context, 'Successfully Post Event');
       final response = await DataService.sendNotification(
-          title, body, token!, 'Data Notification', acessToken!);
+          title, body, token!, 'Data Notification', acessToken);
       if (response.statusCode == 200) {
         debugPrint('Sucessfully to send notification');
       } else {
@@ -179,16 +193,44 @@ class _EventFormPageState extends State<EventFormPage> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                      border: Border(
-                                          bottom: BorderSide(
-                                              color: Colors.grey.shade200))),
-                                  child: TextField(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                  ),
+                                  child: TextFormField(
                                     controller: _dateController,
-                                    decoration: const InputDecoration(
-                                        hintText: "Date",
-                                        hintStyle:
-                                            TextStyle(color: Colors.grey),
-                                        border: InputBorder.none),
+                                    decoration: InputDecoration(
+                                      hintText: "Date",
+                                      hintStyle: const TextStyle(color: Colors.grey),
+                                      border: InputBorder.none,
+                                      suffixIcon: GestureDetector(
+                                        onTap: () async {
+                                          DateTime? pickedDate =
+                                              await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                _selectedDate ?? DateTime.now(),
+                                            firstDate: DateTime(2000),
+                                            lastDate: DateTime(2100),
+                                          );
+                                          if (pickedDate != null) {
+                                            setState(() {
+                                              _selectedDate = pickedDate;
+                                              _dateController.text =
+                                                  DateFormat('yyyy-MM-dd')
+                                                      .format(pickedDate);
+                                            });
+                                          }
+                                        },
+                                        child: const Icon(
+                                          Icons.calendar_today,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    readOnly:
+                                        true, // Membuat input hanya bisa dipilih melalui date picker
                                   ),
                                 ),
                                 Container(
@@ -230,7 +272,7 @@ class _EventFormPageState extends State<EventFormPage> {
                                           value: category.idCategory,
                                           child: Text(
                                             category.nameCategory,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
                                               color: Colors
@@ -244,7 +286,7 @@ class _EventFormPageState extends State<EventFormPage> {
                                           selectedCategoryId = value!;
                                         });
                                       },
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         contentPadding: EdgeInsets.symmetric(
                                             horizontal: 10, vertical: 12),
                                         labelText: 'Category',
@@ -315,9 +357,14 @@ class _EventFormPageState extends State<EventFormPage> {
                                     child: galleryFile == null
                                         ? Center(
                                             child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.camera_alt, size: 60, color: primaryFontColor,),
+                                              const Icon(
+                                                Icons.camera_alt,
+                                                size: 60,
+                                                color: primaryFontColor,
+                                              ),
                                               Text('Pick your Image here',
                                                   style: GoogleFonts.poppins(
                                                     fontSize: 14,

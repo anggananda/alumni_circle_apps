@@ -1,5 +1,5 @@
 import 'package:alumni_circle_app/cubit/auth/cubit/auth_cubit.dart';
-import 'package:alumni_circle_app/pages/register/login_page.dart';
+import 'package:alumni_circle_app/pages/landing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alumni_circle_app/utils/constants.dart';
@@ -12,6 +12,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthCubit>(context);
+    // final isVerified = DataService.checkVerifyToken() as bool;
 
     return FutureBuilder<String?>(
       future: _getAccessTokenFromSecureStorage(),
@@ -19,11 +20,11 @@ class AuthWrapper extends StatelessWidget {
         final storedAccessToken = snapshot.data;
 
         if (snapshot.connectionState == ConnectionState.done) {
-          if (storedAccessToken != null &&
+          if (storedAccessToken != null ||
               storedAccessToken == authCubit.state.accessToken) {
             return child; // Display the child screen if tokens match
           } else {
-            return const LoginPage(); // Redirect if no token or mismatch
+            return const LandingPage(); // Redirect if no token or mismatch
           }
         } else {
           // Show a loading indicator while fetching the token

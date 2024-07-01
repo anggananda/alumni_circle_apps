@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart'; 
 import 'package:alumni_circle_app/models/posts.dart';
 import 'package:sqflite/sqflite.dart'; 
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart'; 
 
 // Kelas DatabaseHelper untuk mengelola operasi database SQLite

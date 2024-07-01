@@ -51,7 +51,7 @@ class LandingPage extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 28
             ),
             child: ElevatedButton(
@@ -64,8 +64,8 @@ class LandingPage extends StatelessWidget {
                   borderRadius:
                       BorderRadius.circular(10), // Atur radius sudut menjadi 10
                 ),
-                minimumSize: Size(double.infinity, 48),),
-            child: Text(
+                minimumSize: const Size(double.infinity, 48),),
+            child: const Text(
               'get started',
               style: TextStyle(
                     fontSize: 16,

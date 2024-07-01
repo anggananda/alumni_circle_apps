@@ -18,6 +18,7 @@ class VacancyFormPage extends StatefulWidget {
       : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _VacancyFormPageState createState() => _VacancyFormPageState();
 }
 
@@ -39,28 +40,28 @@ class _VacancyFormPageState extends State<VacancyFormPage> {
     String vacancyName = _nameController.text;
     String vacancyDescription = _descriptionController.text;
     final title = "🎉 Lowongan Kerja Baru Telah Tersedia! ~ $vacancyName";
-    final body =
+    const body =
         'Hai Circle Mate 👋 Ada lowongan kerja baru yang menarik di alumniCircle. Klik di sini untuk mengetahui lebih lanjut dan jangan lewatkan kesempatan emas ini! Terima kasih sudah menjadi bagian dari alumniCircle. Salam hangat, Tim alumniCircle 💞';
 
     debugPrint(vacancyName);
 
-    if (vacancyName.isEmpty && vacancyDescription.isEmpty) {
+    if (vacancyName.isEmpty || vacancyDescription.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill all the data!')));
       return;
     }
 
-    final acessToken = context.read<AuthCubit>().state.accessToken;
+    final accessToken = context.read<AuthCubit>().state.accessToken;
     final token = context.read<AuthCubit>().state.token;
     final send = context.read<VacancyCubit>(); // Gunakan DiskusiCubit
     send.sendVacancy(vacancyName, vacancyDescription, galleryFile,
-        widget.page!); // Panggil method sendDiskusi
+        widget.page!, accessToken!); // Panggil method sendDiskusi
 
     Navigator.pop(context);
     if (send.state.errorMessage == '') {
       showSuccessDialog(context, 'Successfully Post Vacancy.');
       final response = await DataService.sendNotification(
-          title, body, token!, 'Data Notification', acessToken!);
+          title, body, token!, 'Data Notification', accessToken);
       if (response.statusCode == 200) {
         debugPrint('Sucessfully to send notification');
       } else {
@@ -197,7 +198,7 @@ class _VacancyFormPageState extends State<VacancyFormPage> {
                                             child: Column(
                                               mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.camera_alt, size: 60, color: primaryFontColor,),
+                                              const Icon(Icons.camera_alt, size: 60, color: primaryFontColor,),
                                               Text('Pick your Image here',
                                                   style: GoogleFonts.poppins(
                                                     fontSize: 14,

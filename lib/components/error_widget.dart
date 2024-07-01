@@ -21,7 +21,7 @@ class ErrorDisplay extends StatelessWidget {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 5,
             blurRadius: 7,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -35,8 +35,8 @@ class ErrorDisplay extends StatelessWidget {
             width: 120,
             height: 80,
           ),
-          SizedBox(height: 15),
-          Text(
+          const SizedBox(height: 15),
+          const Text(
             'Oops!',
             style: TextStyle(
               fontSize: 24,
@@ -44,16 +44,16 @@ class ErrorDisplay extends StatelessWidget {
               color: Colors.red,
             ),
           ),
-          SizedBox(height: 10),
-          Text(
-            message,
+          const SizedBox(height: 10),
+          const Text(
+            "Check your internet connection, and try again",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
               color: Colors.black54,
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: onRetry,
             style: ElevatedButton.styleFrom(
@@ -61,13 +61,13 @@ class ErrorDisplay extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30.0),
               ),
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: 30.0,
                 vertical: 12.0,
               ),
               elevation: 5,
             ),
-            child: Text(
+            child: const Text(
               'Retry',
               style: TextStyle(
                 fontSize: 16,
